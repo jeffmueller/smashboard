@@ -1,0 +1,76 @@
+<% content_for :title, "Terms of Service" %>
+
+<%= render "legal/document", title: "Terms of Service" do %>
+  <p>
+    These terms cover the <strong><%= Legal::SERVICE_NAME %></strong> installation at
+    <%= Legal.host %>. Using it means accepting them. It is a personal, self-hosted
+    dashboard run by an individual operator, not a commercial service.
+  </p>
+
+  <h2>Your account</h2>
+  <p>
+    Accounts are created by, or at the invitation of, the operator of this
+    installation. You are responsible for keeping your password and any
+    credentials you add here confidential, and for what happens under your
+    account.
+  </p>
+
+  <h2>Acceptable use</h2>
+  <ul>
+    <li>Connect only accounts you own or are authorised to use.</li>
+    <li>Don't attempt to reach another user's data, or to disrupt the service for others.</li>
+    <li>Don't use it to break the terms of any service you connect to it, or any applicable law.</li>
+  </ul>
+
+  <h2>Connected services</h2>
+  <p>
+    This application displays data from third-party services at your direction.
+    Those services are operated by other people under their own terms, and this
+    installation has no control over their availability, accuracy or behaviour.
+    You can disconnect any of them at any time, and revoke access from the
+    service's own settings.
+  </p>
+
+  <h2>Availability</h2>
+  <p>
+    This runs on personal hardware. It may be unavailable, lose cached data, or
+    change without notice, and no uptime is promised. It is not a system of
+    record — treat the service it draws from as the source of truth, not this
+    dashboard.
+  </p>
+
+  <h2>No warranty</h2>
+  <p>
+    The service is provided <strong>as is</strong>, without warranty of any kind, express
+    or implied, including fitness for a particular purpose and non-infringement.
+  </p>
+
+  <h2>Limitation of liability</h2>
+  <p>
+    To the extent permitted by law, the operator is not liable for any indirect,
+    incidental or consequential damages, or for any loss of data or profits,
+    arising from your use of this application.
+  </p>
+
+  <h2>Termination</h2>
+  <p>
+    You can stop using the service and delete your account at any time. The
+    operator may suspend or remove an account that breaches these terms, or
+    shut the installation down entirely.
+  </p>
+
+  <h2>Changes</h2>
+  <p>
+    If these terms change, the date at the top of this page changes with them.
+    Continuing to use the service after that means accepting the new terms.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    <% if Legal.contact %>
+      Questions can go to <a href="mailto:<%= Legal.contact %>"><%= Legal.contact %></a>.
+    <% else %>
+      Questions should go to the operator of this installation.
+    <% end %>
+  </p>
+<% end %>

@@ -1,0 +1,85 @@
+<% content_for :title, "Account" %>
+<% field = "mt-1 w-full rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
+<% label = "block text-xs uppercase tracking-wide text-ink-muted" %>
+
+<div class="max-w-2xl">
+  <h1 class="mb-1 text-xl font-semibold tracking-tight">Account</h1>
+  <p class="mb-5 text-sm text-ink-muted">
+    Signed in as <span class="text-ink"><%= current_user.email %></span>.
+  </p>
+
+  <% if @user.errors.any? %>
+    <div class="mb-4 rounded-lg border border-danger/40 bg-danger/10 p-3 text-sm text-danger">
+      <ul class="list-inside list-disc">
+        <% @user.errors.full_messages.each do |message| %><li><%= message %></li><% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <section class="mb-6 rounded-lg border border-line bg-surface p-4">
+    <h2 class="mb-3 text-sm font-medium text-ink">Profile</h2>
+
+    <%= form_with model: @user, url: account_path, method: :patch, class: "space-y-4" do |f| %>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="block">
+          <span class="<%= label %>">First name</span>
+          <%= f.text_field :first_name, autocomplete: "given-name", class: field %>
+        </label>
+        <label class="block">
+          <span class="<%= label %>">Last name</span>
+          <%= f.text_field :last_name, autocomplete: "family-name", class: field %>
+        </label>
+      </div>
+
+      <label class="block">
+        <span class="<%= label %>">Time zone</span>
+        <%= f.time_zone_select :time_zone, ActiveSupport::TimeZone.all, { default: "UTC" }, class: field %>
+        <span class="mt-1 block text-xs text-ink-faint">
+          Every time on the dashboard is shown in this zone — meetings, countdowns, todo due
+          dates and what counts as "today".
+          It is <%= Time.current.in_time_zone(current_user.zone).strftime("%-I:%M %p on %A") %> for you now.
+        </span>
+      </label>
+
+      <label class="block">
+        <span class="<%= label %>">Postal code</span>
+        <%= f.text_field :postal_code, autocomplete: "postal-code", class: "#{field} sm:w-40" %>
+        <span class="mt-1 block text-xs text-ink-faint">Used for weather alerts when a connection has no coordinates.</span>
+      </label>
+
+      <%= f.submit "Save profile", class: "rounded-md bg-accent px-4 py-2 text-sm font-medium text-canvas hover:opacity-90" %>
+    <% end %>
+  </section>
+
+  <section class="rounded-lg border border-line bg-surface p-4">
+    <h2 class="mb-1 text-sm font-medium text-ink">Email and password</h2>
+    <p class="mb-3 text-xs text-ink-faint">
+      Changing either needs your current password. Leave the new password blank to change only your email.
+    </p>
+
+    <%= form_with model: @user, url: password_account_path, method: :patch, class: "space-y-4" do |f| %>
+      <label class="block">
+        <span class="<%= label %>">Email</span>
+        <%= f.email_field :email, autocomplete: "email", class: field %>
+      </label>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="block">
+          <span class="<%= label %>">New password</span>
+          <%= f.password_field :password, autocomplete: "new-password", class: field %>
+        </label>
+        <label class="block">
+          <span class="<%= label %>">Confirm new password</span>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password", class: field %>
+        </label>
+      </div>
+
+      <label class="block">
+        <span class="<%= label %>">Current password</span>
+        <%= f.password_field :current_password, autocomplete: "current-password", class: "#{field} sm:w-72" %>
+      </label>
+
+      <%= f.submit "Update account", class: "rounded-md bg-accent px-4 py-2 text-sm font-medium text-canvas hover:opacity-90" %>
+    <% end %>
+  </section>
+</div>

@@ -1,0 +1,7 @@
+<% content_for :title, "Habits" %>
+
+<h1 class="mb-1 text-xl font-semibold tracking-tight">Habits</h1>
+<p class="mb-5 text-sm text-ink-faint">Things you mean to do every day. Drag to reorder.</p>
+
+<%= render "habits/new_form", habit: @habit %>
+<%= render "habits/list", habits: @habits, archived: @archived %>

@@ -1,0 +1,58 @@
+<% events = data[:events] || [] %>
+
+<% if events.empty? %>
+  <div class="flex h-full flex-col justify-center text-sm">
+    <p class="text-ink-faint">
+      <% if data[:finished_count].to_i.positive? %>
+        Nothing left today — <%= pluralize(data[:finished_count], "meeting") %> already done.
+      <% else %>
+        No meetings today.
+      <% end %>
+    </p>
+  </div>
+<% else %>
+  <ul class="space-y-2" data-controller="meetings">
+    <% events.each do |event| %>
+      <li class="flex items-start justify-between gap-3 rounded-lg border px-3 py-2 <%= event[:in_progress] ? "border-ok/40 bg-ok/10" : "border-line bg-raised/40" %>"
+          data-meetings-target="event"
+          data-starts-at="<%= event[:starts_at] %>"
+          data-ends-at="<%= event[:ends_at] %>"
+          data-all-day="<%= event[:all_day] %>">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-baseline gap-2">
+            <span class="shrink-0 font-mono text-xs tabular-nums <%= event[:in_progress] ? "text-ok" : "text-ink-muted" %>">
+              <%= event[:time_label] %>
+            </span>
+            <span class="truncate text-sm font-medium <%= event[:finished] ? "text-ink-faint line-through" : "text-ink" %>">
+              <%= event[:title] %>
+            </span>
+          </div>
+
+          <div class="mt-0.5 flex items-center gap-2 text-xs text-ink-faint">
+            <span data-meetings-target="relative" class="text-ink-muted"></span>
+            <% if event[:location].present? %>
+              <span class="truncate"><%= event[:location] %></span>
+            <% end %>
+            <% if event[:organizer].present? %>
+              <span class="truncate"><%= event[:organizer] %></span>
+            <% end %>
+          </div>
+        </div>
+
+        <% if event[:video_url].present? %>
+          <%= link_to event[:video_url], target: "_blank", rel: "noopener noreferrer",
+                title: "Join #{event[:video_provider]} call",
+                class: "shrink-0 rounded-md border border-accent/40 bg-accent/10 px-2 py-1 text-xs font-medium text-accent hover:bg-accent/20" do %>
+            Join<% if event[:video_provider].present? %> <span class="text-accent/70"><%= event[:video_provider] %></span><% end %>
+          <% end %>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+
+  <% if data[:partial] %>
+    <p class="mt-2 border-t border-line/60 pt-2 text-xs text-warn/80">
+      Some calendars couldn't be reached — this list may be incomplete.
+    </p>
+  <% end %>
+<% end %>

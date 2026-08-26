@@ -1,0 +1,39 @@
+<% notifications = data[:notifications] || [] %>
+
+<% if notifications.empty? %>
+  <div class="flex h-full flex-col justify-center text-sm">
+    <p class="text-ink-faint">Inbox zero.</p>
+  </div>
+<% else %>
+  <div class="flex h-full flex-col">
+    <div class="mb-2.5 flex items-baseline gap-2">
+      <span class="font-mono text-2xl font-semibold tabular-nums text-ink">
+        <%= data[:unread_count] %><%= "+" if data[:capped] %>
+      </span>
+      <span class="text-xs text-ink-faint">unread</span>
+    </div>
+
+    <ul class="flex-1 space-y-2">
+      <% notifications.each do |notification| %>
+        <li>
+          <%= link_to notification[:url], target: "_blank", rel: "noopener noreferrer",
+                class: "block rounded-md px-2 py-1.5 hover:bg-raised" do %>
+            <div class="flex items-baseline gap-2">
+              <span class="shrink-0 rounded bg-raised px-1.5 py-0.5 text-[10px] uppercase tracking-wide <%= notification[:reason] == "review_requested" ? "text-warn" : "text-ink-faint" %>">
+                <%= notification[:reason_label] %>
+              </span>
+              <span class="truncate text-sm text-ink"><%= notification[:title] %></span>
+            </div>
+            <div class="mt-0.5 truncate text-xs text-ink-faint"><%= notification[:repository] %></div>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+
+    <% if data[:partial] %>
+      <p class="mt-2 border-t border-line/60 pt-2 text-xs text-warn/80">
+        Some accounts couldn't be reached.
+      </p>
+    <% end %>
+  </div>
+<% end %>

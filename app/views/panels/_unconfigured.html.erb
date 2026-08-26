@@ -1,0 +1,5 @@
+<div class="flex h-full flex-col justify-center gap-2 text-sm">
+  <p class="text-ink-muted"><%= panel.presenter.class.description %></p>
+  <%= link_to "Connect an account", new_connection_path(provider: panel.presenter.class.required_providers.first),
+        class: "inline-flex w-fit rounded-md border border-accent/40 bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent hover:bg-accent/20" %>
+</div>

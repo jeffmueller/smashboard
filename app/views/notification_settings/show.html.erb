@@ -1,0 +1,87 @@
+<% content_for :title, "Notifications" %>
+
+<div class="max-w-3xl">
+  <h1 class="mb-1 text-xl font-semibold tracking-tight">Notifications</h1>
+  <p class="mb-5 text-sm text-ink-muted">
+    smashboard pushes these to any device where you've turned notifications on.
+  </p>
+
+  <div class="mb-6 rounded-lg border border-line bg-surface p-4"
+       data-controller="push"
+       data-push-enabled-value="<%= current_user.push_subscriptions.any? %>">
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <div class="text-sm font-medium text-ink">This device</div>
+        <div data-push-target="status" class="mt-0.5 text-xs text-ink-faint">Checking…</div>
+      </div>
+      <button type="button" data-action="push#enable" data-push-target="button"
+              class="shrink-0 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-ink hover:bg-accent disabled:opacity-50">
+        Turn on notifications
+      </button>
+    </div>
+    <p class="mt-2 text-xs text-ink-faint">
+      <%= current_user.push_subscriptions.count %>
+      <%= "device".pluralize(current_user.push_subscriptions.count) %> currently registered.
+    </p>
+  </div>
+
+  <%= form_with url: notification_settings_path, method: :patch, class: "space-y-3" do %>
+    <% @preferences.each do |preference| %>
+      <div class="rounded-lg border border-line bg-surface p-4 <%= "opacity-50" unless preference.available? %>">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium text-ink"><%= preference.label %></span>
+              <% unless preference.available? %>
+                <span class="rounded bg-raised px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-ink-faint">
+                  Panel not built yet
+                </span>
+              <% end %>
+            </div>
+            <div class="mt-0.5 text-xs text-ink-faint"><%= preference.description %></div>
+          </div>
+
+          <label class="flex shrink-0 items-center gap-2 text-xs text-ink-muted">
+            <%= hidden_field_tag "notification_preferences[#{preference.kind}][enabled]", "0" %>
+            <%= check_box_tag "notification_preferences[#{preference.kind}][enabled]", "1", preference.enabled,
+                  class: "h-4 w-4 rounded border-line bg-canvas" %>
+            On
+          </label>
+        </div>
+
+        <div class="mt-3 flex flex-wrap items-center gap-4 border-t border-line/60 pt-3 text-xs text-ink-muted">
+          <label class="flex items-center gap-2">
+            <%= hidden_field_tag "notification_preferences[#{preference.kind}][via_web_push]", "0" %>
+            <%= check_box_tag "notification_preferences[#{preference.kind}][via_web_push]", "1", preference.via_web_push,
+                  class: "h-4 w-4 rounded border-line bg-canvas" %>
+            Push
+          </label>
+
+          <label class="flex items-center gap-2 text-ink-faint" title="Email delivery isn't wired up yet">
+            <%= hidden_field_tag "notification_preferences[#{preference.kind}][via_email]", "0" %>
+            <%= check_box_tag "notification_preferences[#{preference.kind}][via_email]", "1", preference.via_email,
+                  disabled: true, class: "h-4 w-4 rounded border-line bg-canvas" %>
+            Email <span class="text-[10px] uppercase">(soon)</span>
+          </label>
+
+          <% preference.fields.each do |field| %>
+            <label class="flex items-center gap-2">
+              <span><%= field[:label] %></span>
+              <% name = "notification_preferences[#{preference.kind}][settings][#{field[:key]}]" %>
+              <% if field[:type] == :select %>
+                <%= select_tag name,
+                      options_for_select(field[:options].map { |o| [o.humanize, o] }, preference.setting(field[:key])),
+                      class: "rounded border border-line bg-canvas px-2 py-1 text-xs text-ink" %>
+              <% else %>
+                <%= number_field_tag name, preference.setting(field[:key]), min: 0, max: 1440,
+                      class: "w-20 rounded border border-line bg-canvas px-2 py-1 text-xs text-ink" %>
+              <% end %>
+            </label>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%= submit_tag "Save", class: "rounded-md bg-accent px-4 py-2 text-sm font-medium text-ink hover:bg-accent" %>
+  <% end %>
+</div>

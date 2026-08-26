@@ -1,0 +1,116 @@
+<%
+  limits = data[:limits] || []
+  recent = data[:recent_days] || []
+  by_model = data[:today_by_model] || []
+  machines = data[:machines] || []
+  peak = recent.map { |day| day[:tokens].to_i }.max.to_i
+  humanize = ->(n) { number_to_human(n.to_i, units: { unit: "", thousand: "K", million: "M", billion: "B" },
+                                     format: "%n%u", precision: 3) }
+%>
+
+<div class="flex h-full flex-col gap-3">
+  <% if machines.empty? %>
+    <p class="flex-1 text-sm text-ink-faint"><%= data[:message] %></p>
+  <% else %>
+    <%# Rate limits first: it's the number you actually act on. A meter, not a
+        chart — one value against a known maximum. Colour here is status, not
+        identity, so it escalates as the window fills. %>
+    <% if limits.any? %>
+      <div class="space-y-2">
+        <% limits.each do |limit| %>
+          <% pct = (limit[:percent].to_f * 100).round %>
+          <% tone = pct >= 90 ? "bg-danger" : pct >= 70 ? "bg-warn" : "bg-accent" %>
+          <div>
+            <div class="flex items-baseline justify-between gap-2 text-xs">
+              <span class="truncate text-ink-muted"><%= limit[:label] %></span>
+              <span class="shrink-0 font-mono tabular-nums text-ink"><%= pct %>%</span>
+            </div>
+            <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-raised">
+              <div class="h-full rounded-full <%= tone %>" style="width: <%= [pct, 1].max %>%"></div>
+            </div>
+            <% if limit[:resets_label].present? %>
+              <div class="mt-0.5 text-[11px] text-ink-faint"><%= limit[:resets_label] %></div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# Today's headline numbers. Values wear text tokens; the sparkline below
+        carries the only series colour. %>
+    <div class="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-t border-line/60 pt-2.5">
+      <div>
+        <div class="font-mono text-2xl font-semibold tabular-nums leading-none text-ink">
+          <%= humanize.call(data[:today_tokens]) %>
+        </div>
+        <div class="mt-1 text-xs text-ink-faint">tokens today</div>
+      </div>
+
+      <% if data[:today_prompts].to_i.positive? %>
+        <div>
+          <div class="font-mono text-xl font-semibold tabular-nums leading-none text-ink-muted">
+            <%= number_with_delimiter(data[:today_prompts].to_i) %>
+          </div>
+          <div class="mt-1 text-xs text-ink-faint">prompts</div>
+        </div>
+      <% end %>
+
+      <% if data[:tier].present? %>
+        <div class="ml-auto self-center rounded border border-line px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-ink-muted">
+          <%= data[:tier] %>
+        </div>
+      <% end %>
+    </div>
+
+    <%# One series, so no legend — the caption says what is plotted. %>
+    <% if peak.positive? %>
+      <figure>
+        <div class="flex h-12 items-end gap-[2px]" role="img"
+             aria-label="Daily token usage over the last <%= recent.size %> days">
+          <% recent.each do |day| %>
+            <div class="flex-1 rounded-t-[4px] bg-accent/70 transition-colors hover:bg-accent"
+                 style="height: <%= [(day[:tokens].to_f / peak * 100).round, 2].max %>%"
+                 title="<%= (Date.parse(day[:date].to_s).strftime('%b %-d') rescue day[:date]) %> · <%= number_with_delimiter(day[:tokens].to_i) %> tokens"></div>
+          <% end %>
+        </div>
+        <figcaption class="mt-1.5 flex justify-between text-[11px] text-ink-faint">
+          <span><%= (Date.parse(recent.first[:date].to_s).strftime('%b %-d') rescue nil) %></span>
+          <span>daily tokens</span>
+          <span>today</span>
+        </figcaption>
+      </figure>
+    <% end %>
+
+    <%# Magnitude in one hue, identity from the label — not a categorical palette. %>
+    <% if by_model.any? %>
+      <dl class="space-y-1">
+        <% top = by_model.first[:tokens].to_i %>
+        <% by_model.first(3).each do |row| %>
+          <div class="flex items-center gap-2">
+            <dt class="w-36 shrink-0 truncate text-xs text-ink-muted"><%= row[:model] %></dt>
+            <dd class="flex flex-1 items-center gap-2">
+              <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-raised">
+                <div class="h-full rounded-full bg-accent/60"
+                     style="width: <%= [(row[:tokens].to_f / [top, 1].max * 100).round, 2].max %>%"></div>
+              </div>
+              <span class="shrink-0 font-mono text-[11px] tabular-nums text-ink-faint"><%= humanize.call(row[:tokens]) %></span>
+            </dd>
+          </div>
+        <% end %>
+      </dl>
+    <% end %>
+
+    <div class="mt-auto flex flex-wrap gap-x-3 gap-y-1 border-t border-line/60 pt-2 text-[11px] text-ink-faint">
+      <% machines.each do |machine| %>
+        <span class="<%= "text-warn/80" if machine[:stale] %>"
+              title="last reported <%= time_ago_in_words(Time.zone.parse(machine[:reported_at])) %> ago">
+          <%= machine[:name] %><%= " · stale" if machine[:stale] %>
+        </span>
+      <% end %>
+    </div>
+
+    <% if data[:message].present? %>
+      <p class="text-xs text-warn/80"><%= data[:message] %></p>
+    <% end %>
+  <% end %>
+</div>

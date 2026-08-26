@@ -1,0 +1,50 @@
+<%# Every top-level destination, behind one button. Grouped so nine items don't
+    read as one undifferentiated list. %>
+<% item = "block rounded-md px-3 py-2.5 text-sm text-ink-muted hover:bg-raised hover:text-ink" %>
+<% current = "bg-raised text-ink" %>
+
+<div class="relative" data-controller="nav-menu" data-action="focusout->nav-menu#closeIfLeft">
+  <button type="button"
+          data-action="nav-menu#toggle"
+          data-nav-menu-target="button"
+          aria-expanded="false"
+          aria-controls="nav-menu"
+          aria-label="Menu"
+          class="flex items-center gap-2 rounded-md p-2.5 text-ink-muted hover:bg-raised hover:text-ink">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+         class="h-6 w-6" aria-hidden="true">
+      <path d="M4 7h16M4 12h16M4 17h16" />
+    </svg>
+  </button>
+
+  <div id="nav-menu" hidden
+       data-nav-menu-target="menu"
+       class="absolute right-0 z-50 mt-2 w-56 rounded-lg border border-line bg-raised p-1.5 shadow-lg shadow-canvas/40">
+    <% [["Countdowns", countdowns_path], ["Todos", todos_path], ["Habits", habits_path],
+        ["Bookmarks", bookmarks_path]].each do |label, path| %>
+      <%= link_to label, path, class: "#{item} #{current if current_page?(path)}",
+            aria: { current: ("page" if current_page?(path)) } %>
+    <% end %>
+
+    <div class="my-1.5 border-t border-line"></div>
+
+    <% [["Connections", connections_path], ["Notifications", notification_settings_path],
+        ["API tokens", api_tokens_path], ["Appearance", appearance_path],
+        ["Account", account_path]].each do |label, path| %>
+      <%= link_to label, path, class: "#{item} #{current if current_page?(path)}",
+            aria: { current: ("page" if current_page?(path)) } %>
+    <% end %>
+
+    <div class="my-1.5 border-t border-line"></div>
+
+    <%= button_to "Sign out", destroy_user_session_path, method: :delete,
+          form: { class: "block" }, class: "#{item} w-full text-left" %>
+
+    <div class="my-1.5 border-t border-line"></div>
+
+    <div class="flex gap-3 px-3 py-1.5 text-xs text-ink-faint">
+      <%= link_to "Privacy", privacy_path, class: "hover:text-ink-muted" %>
+      <%= link_to "Terms", terms_path, class: "hover:text-ink-muted" %>
+    </div>
+  </div>
+</div>

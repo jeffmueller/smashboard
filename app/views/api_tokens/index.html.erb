@@ -1,0 +1,50 @@
+<% content_for :title, "API tokens" %>
+
+<div class="max-w-3xl">
+  <h1 class="mb-1 text-xl font-semibold tracking-tight">API tokens</h1>
+  <p class="mb-5 text-sm text-ink-muted">
+    Bearer tokens for <code class="text-ink-muted">/api/v1</code>, so a native client can talk to smashboard
+    without a browser session.
+  </p>
+
+  <% if flash[:token].present? %>
+    <div class="mb-5 rounded-lg border border-ok/40 bg-ok/10 p-4">
+      <p class="text-sm font-medium text-ok">Copy this now — it won't be shown again.</p>
+      <code class="mt-2 block break-all rounded bg-canvas/80 px-3 py-2 font-mono text-xs text-ok"><%= flash[:token] %></code>
+      <p class="mt-2 text-xs text-ok/70">
+        Send it as <code>Authorization: Bearer &lt;token&gt;</code>.
+      </p>
+    </div>
+  <% end %>
+
+  <%= form_with url: api_tokens_path, method: :post, class: "mb-6 flex gap-2" do %>
+    <%= text_field_tag "api_token[name]", nil, placeholder: "What's it for? e.g. Phone",
+          class: "flex-1 rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent/60 focus:outline-none" %>
+    <%= submit_tag "Create token", class: "rounded-md bg-accent px-4 py-2 text-sm font-medium text-ink hover:bg-accent" %>
+  <% end %>
+
+  <% if @api_tokens.empty? %>
+    <p class="text-sm text-ink-faint">No tokens yet.</p>
+  <% else %>
+    <ul class="space-y-2">
+      <% @api_tokens.each do |token| %>
+        <li class="flex items-center justify-between gap-4 rounded-lg border border-line bg-surface px-4 py-3">
+          <div>
+            <div class="text-sm font-medium text-ink"><%= token.name %></div>
+            <div class="mt-0.5 text-xs text-ink-faint">
+              Created <%= token.created_at.in_time_zone(current_user.zone).strftime("%b %-d, %Y") %>
+              <% if token.last_used_at %>
+                · last used <%= time_ago_in_words(token.last_used_at) %> ago
+              <% else %>
+                · never used
+              <% end %>
+            </div>
+          </div>
+          <%= button_to "Revoke", api_token_path(token), method: :delete,
+                form: { data: { turbo_confirm: "Revoke #{token.name}? Anything using it stops working immediately." } },
+                class: "shrink-0 text-sm text-danger hover:text-danger" %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>

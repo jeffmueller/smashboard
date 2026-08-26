@@ -1,0 +1,15 @@
+<div id="new-habit" class="mb-6 max-w-2xl">
+  <%= form_with model: habit, url: habits_path, method: :post do |f| %>
+    <% if habit.errors.any? %>
+      <p class="mb-2 text-sm text-danger"><%= habit.errors.full_messages.to_sentence %></p>
+    <% end %>
+
+    <div class="flex gap-2">
+      <%= f.text_field :name, placeholder: "Take meds", autocomplete: "off",
+            class: "flex-1 rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent/60 focus:outline-none" %>
+      <div class="w-16 shrink-0"><%= render "habits/emoji_field", f: f %></div>
+      <%= f.submit "Add", class: "shrink-0 rounded-md bg-accent px-4 py-2 text-sm font-medium text-ink hover:bg-accent" %>
+    </div>
+    <p class="mt-1.5 text-xs text-ink-faint">Habits are daily. Check them off on the board.</p>
+  <% end %>
+</div>

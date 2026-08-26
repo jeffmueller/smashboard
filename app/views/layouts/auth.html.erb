@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <title><%= content_for(:title) || "smashboard" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="theme-color" content="#0e0e14">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <%# Signed out there is no stored preference to honour, so this follows the
+      operating system — the same prefers-color-scheme block the dashboard uses. %>
+  <body class="flex h-full flex-col items-center justify-center bg-canvas px-4 text-ink antialiased">
+    <main class="w-full max-w-sm">
+      <div class="mb-6 flex items-center justify-center gap-2">
+        <span class="inline-block h-2.5 w-2.5 rounded-full bg-ok shadow-[0_0_12px] shadow-ok/60"></span>
+        <span class="text-lg font-semibold tracking-tight">smashboard</span>
+      </div>
+
+      <div class="rounded-xl border border-line bg-surface p-6 shadow-lg shadow-canvas/40">
+        <% if content_for?(:heading) %>
+          <h1 class="mb-1 text-lg font-semibold tracking-tight"><%= yield :heading %></h1>
+          <p class="mb-5 text-sm text-ink-muted"><%= yield :subheading %></p>
+        <% end %>
+
+        <% flash.each do |type, message| %>
+          <% next if message.blank? || type.to_s == "token" %>
+          <div class="mb-4 rounded-lg border px-3 py-2 text-sm <%= type.to_s == "alert" ? "border-danger/40 bg-danger/10 text-danger" : "border-ok/40 bg-ok/10 text-ok" %>">
+            <%= message %>
+          </div>
+        <% end %>
+
+        <%= yield %>
+      </div>
+
+      <div class="mt-4 text-center text-xs text-ink-faint">
+        <%= render "devise/shared/links" %>
+      </div>
+
+      <%# Reachable without an account: Google's consent screen requires both,
+          and a reviewer looks for them from a signed-out browser. %>
+      <div class="mt-6 flex justify-center gap-4 text-xs text-ink-faint">
+        <%= link_to "Privacy", privacy_path, class: "hover:text-ink-muted" %>
+        <%= link_to "Terms", terms_path, class: "hover:text-ink-muted" %>
+      </div>
+    </main>
+  </body>
+</html>

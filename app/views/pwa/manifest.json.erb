@@ -1,0 +1,20 @@
+{
+  "name": "smashboard",
+  "short_name": "smashboard",
+  "description": "Everything going on in your life, at a glance.",
+  "icons": [
+    { "src": "/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "/icon.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+    <%# Android crops a maskable icon to a circle over the central 80%, so this
+        one is the artwork inset into that safe zone rather than the same file
+        again — declaring the full-bleed icon maskable loses the corners. %>
+    { "src": "/icon-maskable.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+  ],
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  <%# Matches the icon's own background so the splash screen has no seam. %>
+  "background_color": "#071C42",
+  "theme_color": "#071C42"
+}

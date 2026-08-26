@@ -1,0 +1,37 @@
+<% bookmarks = data[:bookmarks] || [] %>
+
+<div class="flex h-full flex-col">
+  <% if bookmarks.empty? %>
+    <p class="flex-1 text-sm text-ink-faint">
+      No bookmarks yet. Paste a URL below, or
+      <%= link_to "manage them", bookmarks_path, class: "text-accent hover:underline" %>.
+    </p>
+  <% else %>
+    <ul class="grid flex-1 auto-rows-min grid-cols-2 gap-1.5 sm:grid-cols-3">
+      <% bookmarks.each do |bookmark| %>
+        <li>
+          <%= link_to bookmark[:url], target: "_blank", rel: "noopener noreferrer",
+                title: bookmark[:url],
+                class: "flex items-center gap-2.5 rounded-md border border-line/60 bg-canvas/40 px-2.5 py-2 hover:border-accent/50 hover:bg-raised" do %>
+            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm <%= bookmark[:icon] ? "" : "font-semibold text-ink-muted" %>">
+              <%= bookmark[:icon] || bookmark[:initial] %>
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block truncate text-sm text-ink"><%= bookmark[:title] %></span>
+              <% if bookmark[:host].present? %>
+                <span class="block truncate text-xs text-ink-faint"><%= bookmark[:host] %></span>
+              <% end %>
+            </span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <%= form_with url: bookmarks_path, method: :post, class: "mt-3 border-t border-line/60 pt-2.5" do |f| %>
+    <%= f.text_field "bookmark[url]",
+          placeholder: "Add a link…",
+          autocomplete: "off",
+          class: "w-full rounded-md border border-line bg-canvas/60 px-3 py-1.5 text-sm text-ink placeholder:text-ink-faint focus:border-accent/60 focus:outline-none" %>
+  <% end %>
+</div>

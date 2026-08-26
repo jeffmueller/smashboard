@@ -1,0 +1,28 @@
+<p class="mb-5 text-sm text-ink-muted">
+  Pick what you're connecting. Each one asks only for what it actually needs, and tells you where to get it.
+</p>
+
+<% ConnectionProvider.by_panel.each do |panel, providers| %>
+  <h2 class="mb-2 mt-5 text-xs font-semibold uppercase tracking-wider text-ink-faint"><%= panel %></h2>
+
+  <div class="grid gap-2 sm:grid-cols-2">
+    <% providers.each do |provider| %>
+      <%= link_to connect_path(provider),
+            class: "block rounded-lg border border-line bg-surface p-3 hover:border-accent/60" do %>
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-sm font-medium text-ink"><%= provider.label %></span>
+          <% if provider.oauth? %>
+            <span class="shrink-0 rounded bg-accent/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-accent">
+              Sign in
+            </span>
+          <% elsif provider.credentials.empty? %>
+            <span class="shrink-0 rounded bg-ok/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-ok">
+              No key needed
+            </span>
+          <% end %>
+        </div>
+        <p class="mt-1 text-xs text-ink-muted"><%= provider.summary %></p>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

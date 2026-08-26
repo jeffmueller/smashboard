@@ -1,0 +1,101 @@
+<%
+  habits = data[:habits] || []
+  activity = data[:activity] || {}
+  weeks = activity[:weeks] || []
+%>
+
+<div class="flex h-full flex-col gap-3">
+  <% if habits.empty? %>
+    <p class="flex-1 text-sm text-ink-faint">
+      No habits yet. <%= link_to "Add one", habits_path, class: "text-accent hover:underline" %> to start tracking.
+    </p>
+  <% else %>
+    <ul class="space-y-1">
+      <% habits.each do |habit| %>
+        <li>
+          <%= button_to toggle_habit_path(habit[:id]), method: :post,
+                form: { class: "block w-full" },
+                class: "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left hover:bg-raised" do %>
+            <%# The box carries the state; the strikethrough and the label repeat
+                it, so completion is never signalled by colour alone. %>
+            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded border text-[11px] <%= habit[:done] ? "border-ok bg-ok/20 text-ok" : "border-line text-transparent" %>"
+                  aria-hidden="true">✓</span>
+
+            <span class="w-5 shrink-0 text-center text-sm"><%= habit[:icon] || habit[:initial] %></span>
+
+            <span class="min-w-0 flex-1 truncate text-sm <%= habit[:done] ? "text-ink-faint line-through" : "text-ink" %>">
+              <%= habit[:name] %>
+            </span>
+
+            <% if habit[:streak].to_i > 1 %>
+              <span class="shrink-0 font-mono text-[11px] tabular-nums text-ink-faint"
+                    title="<%= pluralize(habit[:streak], "day") %> in a row"><%= habit[:streak] %>d</span>
+            <% end %>
+
+            <span class="sr-only"><%= habit[:done] ? "Completed today. Undo" : "Mark done for today" %></span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+
+    <%# The grid, with a filter above it. Filtering is done in the browser from
+        data already on the page, so switching habits doesn't cost a round trip. %>
+    <% if weeks.any? %>
+      <div class="mt-auto border-t border-line/60 pt-2.5"
+           data-controller="habit-activity"
+           data-habit-activity-levels-value="<%= HabitsPanel::LEVELS %>"
+           data-habit-activity-total-value="<%= habits.size %>"
+           data-habit-activity-ramp-value="<%= HabitsHelper::ACTIVITY_LEVELS.values.to_json %>">
+        <div class="mb-2 flex flex-wrap gap-1">
+          <button type="button"
+                  data-action="habit-activity#filter" data-habit-activity-target="chip" data-habit-id=""
+                  class="rounded px-1.5 py-0.5 text-[11px] text-ink-muted hover:bg-raised">All</button>
+          <% habits.each do |habit| %>
+            <button type="button"
+                    data-action="habit-activity#filter" data-habit-activity-target="chip"
+                    data-habit-id="<%= habit[:id] %>"
+                    class="rounded px-1.5 py-0.5 text-[11px] text-ink-muted hover:bg-raised">
+              <%= habit[:icon] || habit[:name].truncate(10) %>
+            </button>
+          <% end %>
+        </div>
+
+        <figure>
+          <%# Columns flex so the grid fills whatever width the tile has been
+              resized to, and the cells stay square by aspect ratio rather than
+              by a hardcoded size that only looks right at one panel width. %>
+          <div class="flex w-full gap-[2px]" role="img"
+               data-habit-activity-target="grid"
+               aria-label="Habit activity from <%= activity[:start_on] %> to <%= activity[:end_on] %>">
+            <% weeks.each do |week| %>
+              <div class="flex min-w-0 flex-1 flex-col gap-[2px]">
+                <% week.each do |cell| %>
+                  <% if cell[:in_range] %>
+                    <span class="aspect-square w-full rounded-[2px] <%= activity_level_class(cell[:level]) %>"
+                          data-habit-activity-target="cell"
+                          data-date="<%= cell[:date] %>"
+                          data-done="<%= cell[:done_ids].join(",") %>"
+                          title="<%= activity_cell_title(cell, habits) %>"></span>
+                  <% else %>
+                    <span class="aspect-square w-full"></span>
+                  <% end %>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+
+          <figcaption class="mt-1.5 flex items-center justify-between text-[11px] text-ink-faint">
+            <span data-habit-activity-target="caption"><%= pluralize(data[:done_count].to_i, "habit") %> done today</span>
+            <span class="flex items-center gap-1">
+              less
+              <% (0..HabitsPanel::LEVELS).each do |level| %>
+                <span class="h-[9px] w-[9px] rounded-[2px] <%= activity_level_class(level) %>"></span>
+              <% end %>
+              more
+            </span>
+          </figcaption>
+        </figure>
+      </div>
+    <% end %>
+  <% end %>
+</div>

@@ -1,0 +1,32 @@
+<%# Dispatcher: every panel gets the same chrome, and the body is chosen by kind. %>
+<section
+  id="<%= dom_id(panel) %>"
+  data-reorder-target="item"
+  data-reorder-id="<%= panel.id %>"
+  class="group relative flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg shadow-canvas/40 <%= panel_span_classes(panel) %>">
+
+  <header
+    draggable="true"
+    data-action="dragstart->reorder#dragStart dragover->reorder#dragOver dragend->reorder#dragEnd drop->reorder#drop"
+    class="flex cursor-grab items-center justify-between gap-2 border-b border-line/60 px-4 py-2.5 active:cursor-grabbing">
+    <h2 class="text-xs font-semibold uppercase tracking-wider text-ink-muted"><%= panel.display_title %></h2>
+    <div class="flex shrink-0 items-center gap-2">
+      <% if (status = panel_status_label(panel)).present? %>
+        <span class="text-[10px] uppercase tracking-wide text-ink-faint"><%= status %></span>
+      <% end %>
+      <%= render "panels/menu", panel: panel %>
+    </div>
+  </header>
+
+  <div class="flex-1 p-4">
+    <% if panel.presenter.class.pending? %>
+      <%= render "panels/pending", panel: panel %>
+    <% elsif !panel.presenter.configured? %>
+      <%= render "panels/unconfigured", panel: panel %>
+    <% elsif panel.data_status == "error" %>
+      <%= render "panels/errored", panel: panel %>
+    <% else %>
+      <%= render "panels/#{panel.kind}", panel: panel, data: panel.presenter.view_data %>
+    <% end %>
+  </div>
+</section>

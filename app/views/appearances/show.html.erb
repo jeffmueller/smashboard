@@ -1,0 +1,68 @@
+<% content_for :title, "Appearance" %>
+
+<div class="max-w-4xl">
+  <h1 class="mb-1 text-xl font-semibold tracking-tight">Appearance</h1>
+  <p class="mb-5 text-sm text-ink-muted">
+    <%# The themes ship with the app; they were generated from the Omarchy set,
+        but nothing is read from the host at runtime — so this copy must not
+        claim anything about the machine the reader is on. %>
+    Pick how the dashboard looks. "Follow system" tracks your OS light and dark setting.
+  </p>
+
+  <%= form_with model: current_user, url: appearance_path, method: :patch,
+        data: { controller: "theme-preview", turbo: false } do |f| %>
+
+    <%# Following the OS needs no attribute on <html> at all — the stylesheet's
+        prefers-color-scheme block handles it, so there's no flash on load. %>
+    <label class="mb-4 flex cursor-pointer items-center gap-3 rounded-lg border p-4
+                  <%= @selected == Theme::SYSTEM ? "border-accent/60 bg-accent/10" : "border-line bg-surface" %>">
+      <%= f.radio_button :theme, Theme::SYSTEM, checked: @selected == Theme::SYSTEM,
+            class: "h-4 w-4 accent-accent",
+            data: { action: "theme-preview#preview", theme_preview_slug_param: "" } %>
+      <div>
+        <div class="text-sm font-medium text-ink">Follow the system</div>
+        <div class="text-xs text-ink-faint">
+          Light or dark to match your OS — <%= Theme.find(Theme::SYSTEM_LIGHT)&.name %> and
+          <%= Theme.find(Theme::SYSTEM_DARK)&.name %>.
+        </div>
+      </div>
+    </label>
+
+    <% Theme.all.group_by(&:mode).each do |mode, themes| %>
+      <h2 class="mb-2 mt-5 text-xs font-semibold uppercase tracking-wider text-ink-faint">
+        <%= mode %> · <%= pluralize(themes.size, "theme") %>
+      </h2>
+
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <% themes.each do |theme| %>
+          <label class="cursor-pointer rounded-lg border p-3 transition-colors
+                        <%= @selected == theme.slug ? "border-accent/60 bg-accent/10" : "border-line bg-surface hover:border-line" %>">
+            <div class="flex items-center gap-2">
+              <%= f.radio_button :theme, theme.slug, checked: @selected == theme.slug,
+                    class: "h-3.5 w-3.5 accent-accent",
+                    data: { action: "theme-preview#preview", theme_preview_slug_param: theme.slug } %>
+              <span class="truncate text-sm text-ink"><%= theme.name %></span>
+            </div>
+
+            <%# Swatches carry each theme's own colours, so they can't use the
+                token classes — the whole point is to show a theme you are not
+                currently wearing. %>
+            <div class="mt-2 flex gap-1 overflow-hidden rounded" aria-hidden="true">
+              <% theme.preview.each do |colour| %>
+                <span class="h-6 flex-1" style="background-color: <%= colour %>"></span>
+              <% end %>
+            </div>
+            <div class="mt-1.5 text-[11px] text-ink-faint">contrast <%= theme.contrast %>:1</div>
+          </label>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="sticky bottom-4 mt-6 flex items-center gap-3 rounded-lg border border-line bg-surface/95 p-3 backdrop-blur">
+      <%= f.submit "Save theme", class: "rounded-md bg-accent px-4 py-2 text-sm font-medium text-canvas hover:opacity-90" %>
+      <span data-theme-preview-target="status" class="text-xs text-ink-faint">
+        Previewing as you click; save to keep it.
+      </span>
+    </div>
+  <% end %>
+</div>

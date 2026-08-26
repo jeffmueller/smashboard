@@ -1,0 +1,24 @@
+<% content_for :title, "Choose a new password" %>
+<% content_for :heading, "Choose a new password" %>
+<% content_for :subheading, "Nearly there — pick something you'll remember." %>
+<% field = "mt-1 w-full rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
+
+<%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put, class: "space-y-4" }) do |f| %>
+  <%= render "devise/shared/error_messages", resource: resource %>
+  <%= f.hidden_field :reset_password_token %>
+
+  <label class="block">
+    <span class="block text-xs uppercase tracking-wide text-ink-muted">New password</span>
+    <%= f.password_field :password, autofocus: true, autocomplete: "new-password", class: field %>
+    <% if @minimum_password_length %>
+      <span class="mt-1 block text-xs text-ink-faint">At least <%= @minimum_password_length %> characters.</span>
+    <% end %>
+  </label>
+
+  <label class="block">
+    <span class="block text-xs uppercase tracking-wide text-ink-muted">Confirm new password</span>
+    <%= f.password_field :password_confirmation, autocomplete: "new-password", class: field %>
+  </label>
+
+  <%= f.submit "Save new password", class: "w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-canvas hover:opacity-90" %>
+<% end %>

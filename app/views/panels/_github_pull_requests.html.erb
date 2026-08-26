@@ -1,0 +1,53 @@
+<% pull_requests = data[:pull_requests] || [] %>
+
+<% if pull_requests.empty? %>
+  <div class="flex h-full flex-col justify-center text-sm">
+    <p class="text-ink-faint">No open pull requests.</p>
+  </div>
+<% else %>
+  <div class="flex h-full flex-col">
+    <ul class="flex-1 space-y-1.5">
+      <% pull_requests.each do |pull_request| %>
+        <% awaiting = pull_request[:relationship] == "review_requested" %>
+        <li>
+          <%= link_to pull_request[:url], target: "_blank", rel: "noopener noreferrer",
+                class: "block rounded-md border px-2.5 py-1.5 #{awaiting ? "border-warn/40 bg-warn/10" : "border-line bg-raised/40"} hover:bg-raised" do %>
+            <div class="flex items-baseline gap-2">
+              <% if awaiting %>
+                <span class="shrink-0 text-[10px] font-medium uppercase tracking-wide text-warn">Review</span>
+              <% end %>
+              <span class="truncate text-sm <%= pull_request[:draft] ? "text-ink-muted" : "text-ink" %>">
+                <%= pull_request[:title] %>
+              </span>
+              <% if pull_request[:draft] %>
+                <span class="shrink-0 rounded bg-raised px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-ink-faint">Draft</span>
+              <% end %>
+            </div>
+            <div class="mt-0.5 flex items-center gap-2 truncate text-xs text-ink-faint">
+              <span><%= pull_request[:repository] %>#<%= pull_request[:number] %></span>
+              <% if pull_request[:author].present? && !awaiting %>
+                <span>· you</span>
+              <% elsif pull_request[:author].present? %>
+                <span>· <%= pull_request[:author] %></span>
+              <% end %>
+              <% if pull_request[:comments].to_i.positive? %>
+                <span>· <%= pluralize(pull_request[:comments], "comment") %></span>
+              <% end %>
+            </div>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+
+    <div class="mt-3 flex gap-4 border-t border-line/60 pt-2 text-xs text-ink-faint">
+      <% if data[:review_requested_count].to_i.positive? %>
+        <span class="text-warn"><%= data[:review_requested_count] %> awaiting your review</span>
+      <% end %>
+      <span><%= pluralize(data[:mine_count].to_i, "of yours") %> open</span>
+    </div>
+
+    <% if data[:partial] %>
+      <p class="mt-2 text-xs text-warn/80">Some accounts couldn't be reached.</p>
+    <% end %>
+  </div>
+<% end %>

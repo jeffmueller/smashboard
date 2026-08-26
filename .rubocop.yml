@@ -1,0 +1,148 @@
+plugins:
+  - rubocop-rails
+  - rubocop-rspec
+  - rubocop-rspec_rails
+  - rubocop-factory_bot
+
+inherit_gem:
+  rubocop-rspec:
+    - config/default.yml
+  rubocop-rspec_rails:
+    - config/default.yml
+
+AllCops:
+  TargetRubyVersion: 3.4
+  NewCops: enable
+  Exclude:
+    - 'db/schema.rb'
+    - 'db/seeds.rb'
+    - 'db/queue_schema.rb'
+    - 'db/cache_schema.rb'
+    - 'db/cable_schema.rb'
+    - 'bin/**/*'
+    - 'node_modules/**/*'
+    - 'vendor/**/*'
+    - 'lib/tasks/**/*'
+    - 'script/**/*'
+
+Style/Documentation:
+  Enabled: false
+
+RSpec/StubbedMock:
+  Enabled: false
+
+RSpec/AnyInstance:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+
+RSpec/LetSetup:
+  Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Enabled: false
+
+RSpec/NestedGroups:
+  Enabled: false
+
+Style/OpenStructUse:
+  Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - 'config/routes.rb'
+    - 'config/environments/*.rb'
+    - 'spec/**/*'
+    - 'lib/tasks/**/*.rake'
+    - 'config/initializers/**/*'
+  AllowedMethods:
+    - describe
+    - context
+    - feature
+    - it
+    - scenario
+
+Layout/LineLength:
+  Max: 120
+  AllowedPatterns:
+    - '^\s*#'
+    - 'http[s]?://'
+
+# Disable metrics cops as per project preferences
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+# Rake task specs describe a task name, not a class. inherit_mode merge is
+# required: a bare Exclude here would REPLACE rubocop-rspec's inherited list
+# rather than add to it.
+RSpec/DescribeClass:
+  inherit_mode:
+    merge:
+      - Exclude
+  Exclude:
+    - 'spec/tasks/**/*_spec.rb'
+    # Checks how the JS and the views line up; there's no class under test.
+    - 'spec/javascript/**/*_spec.rb'
+
+# This app is single-locale by design; flash strings live where they're used
+# rather than behind a translation layer nothing else uses.
+Rails/I18nLocaleTexts:
+  Enabled: false
+
+# Keyword arguments don't carry the positional-order hazard this cop guards
+# against, and spec builders legitimately take a lot of named options.
+Metrics/ParameterLists:
+  CountKeywordArgs: false
+
+# Theme is a plain value object that happens to live in app/models, so
+# `Theme.all.first` is not the redundant ActiveRecord idiom this cop assumes —
+# Theme has no `.first`, and autocorrecting it produces a NoMethodError.
+Rails/RedundantActiveRecordAllMethod:
+  AllowedReceivers:
+    - Theme
+    - ConnectionProvider
+
+# Same cause: these are Arrays, not relations, so `find_each` does not exist and
+# autocorrecting to it raises NoMethodError.
+Rails/FindEach:
+  AllowedReceivers:
+    - Theme
+    - ConnectionProvider
+
+# Rails/Delegate proposes `delegate ..., to: :SOME_CONSTANT`, which raises at
+# runtime: delegate sends its target as a method. Class-level readers over
+# constants are written out longhand on purpose.
+Rails/Delegate:
+  Exclude:
+    - 'app/models/connection_provider.rb'
+
+# `apply_order` is a command that reports whether it succeeded, in the manner of
+# `save` or `update` — renaming it to `apply_order?` would suggest it asks a
+# question and changes nothing.
+# Listing AllowedMethods replaces the cop's defaults, so `call` is repeated here.
+Naming/PredicateMethod:
+  # A bang method is a command by convention; one that reports the state it left
+  # behind is not asking a question.
+  AllowBangMethods: true
+  AllowedMethods:
+    - call
+    - apply_order

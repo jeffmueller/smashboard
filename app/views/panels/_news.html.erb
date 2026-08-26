@@ -1,0 +1,23 @@
+<% story = data[:story] %>
+
+<% if story.blank? %>
+  <p class="text-sm text-ink-faint">Nothing breaking right now.</p>
+<% else %>
+  <div class="flex h-full flex-col">
+    <h3 class="text-base font-semibold leading-snug text-ink"><%= story[:headline] %></h3>
+    <p class="mt-1.5 flex-1 text-sm leading-relaxed text-ink-muted"><%= story[:summary] %></p>
+
+    <div class="mt-3 space-y-1 border-t border-line/60 pt-2">
+      <% Array(story[:articles]).first(3).each do |article| %>
+        <%= link_to article[:link], target: "_blank", rel: "noopener noreferrer",
+              class: "block truncate text-xs text-accent hover:text-accent" do %>
+          <span class="text-ink-faint"><%= article[:source] %></span>
+          <%= article[:title] %>
+        <% end %>
+      <% end %>
+      <p class="pt-1 text-[10px] uppercase tracking-wide text-ink-faint">
+        <%= pluralize(story[:mention_count].to_i, "mention") %> across <%= pluralize(Array(story[:sources]).size, "source") %>
+      </p>
+    </div>
+  </div>
+<% end %>

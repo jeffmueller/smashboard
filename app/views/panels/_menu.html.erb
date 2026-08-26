@@ -1,0 +1,40 @@
+<% action = "rounded px-2 py-1 text-left text-xs text-ink-muted hover:bg-raised hover:text-ink" %>
+
+<div class="relative" data-controller="panel-menu">
+  <button type="button"
+          data-action="panel-menu#toggle"
+          data-panel-menu-target="button"
+          draggable="false"
+          aria-label="<%= panel.display_title %> options"
+          <%# Always visible, just recessive: a hover-only control is invisible on a
+              touch screen, which is where a phone-sized board most needs resizing. %>
+          class="rounded px-1 text-ink-faint opacity-70 transition-opacity hover:text-ink hover:opacity-100">
+    <span aria-hidden="true">&hellip;</span>
+  </button>
+
+  <%# Positioned by the controller rather than with `absolute`: the panel clips
+      its own content to keep the rounded corners, and a clipped ancestor beats
+      any z-index. Fixed coordinates take the menu out of that box entirely. %>
+  <div data-panel-menu-target="menu" hidden
+       class="fixed z-50 w-36 rounded-lg border border-line bg-raised p-1 shadow-lg shadow-canvas/40">
+    <div class="px-2 pb-1 pt-0.5 text-[10px] uppercase tracking-wide text-ink-faint">Width</div>
+
+    <% Panel::SIZES.each_key do |size| %>
+      <%= button_to panel_path(panel), method: :patch,
+            params: { "panel[size]" => size },
+            form: { class: "block" },
+            class: "#{action} block w-full #{panel.size == size ? "bg-accent/10 text-accent" : ""}" do %>
+        <%= size.capitalize %>
+      <% end %>
+    <% end %>
+
+    <div class="my-1 border-t border-line"></div>
+
+    <%= button_to panel_path(panel), method: :patch,
+          params: { "panel[enabled]" => false },
+          form: { class: "block" },
+          class: "#{action} block w-full" do %>
+      Hide panel
+    <% end %>
+  </div>
+</div>

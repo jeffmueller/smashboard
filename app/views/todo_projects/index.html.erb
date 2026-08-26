@@ -1,0 +1,32 @@
+<% content_for :title, "Projects" %>
+
+<div class="max-w-2xl">
+  <h1 class="mb-5 text-xl font-semibold tracking-tight">Projects</h1>
+
+  <%= form_with model: @project, url: todo_projects_path, class: "mb-6 flex gap-2" do |f| %>
+    <%= f.text_field :name, placeholder: "New project…",
+          class: "flex-1 rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent/60 focus:outline-none" %>
+    <%= f.select :color, TodoProject::COLORS.map { |c| [c.humanize, c] }, {},
+          class: "rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink" %>
+    <%= f.submit "Add", class: "rounded-md bg-accent px-4 py-2 text-sm font-medium text-ink hover:bg-accent" %>
+  <% end %>
+
+  <% if @projects.empty? %>
+    <p class="text-sm text-ink-faint">No projects yet.</p>
+  <% else %>
+    <ul class="space-y-2">
+      <% @projects.each do |project| %>
+        <li class="flex items-center justify-between gap-4 rounded-lg border border-line bg-surface px-4 py-3">
+          <div class="flex items-center gap-2">
+            <span class="inline-block h-2 w-2 rounded-full <%= accent_classes(project.color).split.last %>"></span>
+            <span class="text-sm font-medium text-ink"><%= project.name %></span>
+            <span class="text-xs text-ink-faint"><%= pluralize(project.todos.incomplete.count, "open item") %></span>
+          </div>
+          <%= button_to "Delete", todo_project_path(project), method: :delete,
+                form: { data: { turbo_confirm: "Delete #{project.name}? Its todos are kept, just unfiled." } },
+                class: "shrink-0 text-sm text-danger hover:text-danger" %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>

@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+#
+# Collects this machine's Claude Code usage and pushes it to smashboard.
+#
+# The data only exists here: rate limits sit behind this machine's OAuth login
+# and token counts sit in its local transcripts, neither of which the server can
+# reach. So the machine reports, and the Anthropic credential never leaves it —
+# the collector puts the access token in an Authorization header and nowhere in
+# its output, and only the resulting numbers are sent.
+#
+# Install:
+#   sudo install -m 0755 script/smashboard-usage-reporter /usr/local/bin/
+#   mkdir -p ~/.config/smashboard && chmod 700 ~/.config/smashboard
+#   cat > ~/.config/smashboard/reporter.env <<'ENV'
+#   SMASHBOARD_URL=https://dashboard.example.com
+#   SMASHBOARD_API_TOKEN=smb_...
+#   ENV
+#   chmod 600 ~/.config/smashboard/reporter.env
+#
+# Then either run it from cron/a systemd timer (see deployment/reporter/), or by
+# hand to check it works.
+
+set -euo pipefail
+
+CONFIG="${SMASHBOARD_REPORTER_ENV:-$HOME/.config/smashboard/reporter.env}"
+# shellcheck disable=SC1090
+[ -f "$CONFIG" ] && . "$CONFIG"
+
+: "${SMASHBOARD_URL:?set SMASHBOARD_URL (in $CONFIG or the environment)}"
+: "${SMASHBOARD_API_TOKEN:?set SMASHBOARD_API_TOKEN (in $CONFIG or the environment)}"
+
+# Omarchy already ships a maintained collector that produces exactly the record
+# this wants, including the authoritative rate limits. Reimplementing it here
+# would mean owning the transcript formats and the usage endpoint too.
+COLLECTOR="${SMASHBOARD_USAGE_COLLECTOR:-/usr/share/omarchy/bin/omarchy-agent-usage-claude}"
+if [ ! -x "$COLLECTOR" ]; then
+    echo "smashboard-usage-reporter: no collector at $COLLECTOR" >&2
+    echo "Set SMASHBOARD_USAGE_COLLECTOR to a command printing the same JSON." >&2
+    exit 1
+fi
+
+MACHINE="${SMASHBOARD_MACHINE:-$(hostname -s 2>/dev/null || hostname)}"
+
+payload="$("$COLLECTOR")"
+if [ -z "$payload" ]; then
+    echo "smashboard-usage-reporter: collector produced nothing" >&2
+    exit 1
+fi
+
+# Built with jq so the collector's JSON is embedded as a value rather than
+# spliced into a string, where a quote in a model name would break the request.
+body="$(jq -cn \
+    --arg agent claude \
+    --arg machine "$MACHINE" \
+    --arg reported_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    --argjson payload "$payload" \
+    '{agent: $agent, machine: $machine, reported_at: $reported_at, payload: $payload}')"
+
+status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 \
+    -X POST "${SMASHBOARD_URL%/}/api/v1/agent_usage" \
+    -H "Authorization: Bearer $SMASHBOARD_API_TOKEN" \
+    -H 'Content-Type: application/json' \
+    -d "$body")"
+
+case "$status" in
+    201|200) echo "smashboard: reported $MACHINE" ;;
+    401) echo "smashboard: token rejected (check SMASHBOARD_API_TOKEN)" >&2; exit 1 ;;
+    *)   echo "smashboard: push failed with HTTP $status" >&2; exit 1 ;;
+esac

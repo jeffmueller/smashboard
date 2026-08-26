@@ -1,0 +1,33 @@
+<%# f: form builder for a Habit. Renders the icon field as a picker button. %>
+<div data-controller="emoji-picker">
+  <%= f.hidden_field :icon, data: { emoji_picker_target: "input" } %>
+
+  <button type="button"
+          data-action="emoji-picker#toggle"
+          data-emoji-picker-target="button"
+          aria-label="Choose an emoji"
+          class="flex h-full w-full items-center justify-center rounded-md border border-line bg-canvas/60 px-3 py-2 text-lg leading-none hover:border-accent/60">
+    <span data-emoji-picker-target="display" class="<%= "opacity-40" if f.object.icon.blank? %>">
+      <%= f.object.icon.presence || "🔖" %>
+    </span>
+  </button>
+
+  <%# Fixed rather than absolute: this can render inside a row's edit popover,
+      and a clipped ancestor beats any z-index. %>
+  <div data-emoji-picker-target="panel" hidden
+       class="fixed z-50 w-72 rounded-lg border border-line bg-raised p-2 shadow-lg shadow-canvas/40">
+    <input type="search" placeholder="Search emoji…" autocomplete="off"
+           data-emoji-picker-target="search"
+           data-action="input->emoji-picker#search"
+           class="mb-2 w-full rounded-md border border-line bg-canvas/60 px-2.5 py-1.5 text-sm text-ink placeholder:text-ink-faint focus:border-accent/60 focus:outline-none">
+
+    <div data-emoji-picker-target="tabs" class="mb-1.5 flex flex-wrap gap-0.5 border-b border-line pb-1.5"></div>
+
+    <div data-emoji-picker-target="grid" class="grid max-h-56 grid-cols-8 gap-0.5 overflow-y-auto"></div>
+
+    <button type="button" data-action="emoji-picker#clear"
+            class="mt-1.5 w-full rounded px-2 py-1 text-xs text-ink-muted hover:bg-raised hover:text-ink">
+      Remove emoji
+    </button>
+  </div>
+</div>

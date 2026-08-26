@@ -1,0 +1,26 @@
+# Local development Postgres for smashboard.
+#
+# Published on 5433 rather than 5432 so it doesn't collide with a Postgres you
+# may already be running. To use a different port, change it here and set
+# SMASHBOARD_DATABASE_PORT to match.
+services:
+  postgres:
+    image: postgres:18
+    container_name: smashboard-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: smashboard
+      POSTGRES_PASSWORD: smashboard
+      POSTGRES_DB: smashboard_development
+    ports:
+      - "5433:5432"
+    volumes:
+      - smashboard-pg-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smashboard"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  smashboard-pg-data:

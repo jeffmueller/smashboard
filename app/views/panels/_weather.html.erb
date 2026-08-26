@@ -1,0 +1,94 @@
+<% conditions = data[:conditions] %>
+<% alerts = data[:alerts] || [] %>
+
+<div class="flex h-full flex-col gap-3">
+  <% if alerts.any? %>
+    <ul class="space-y-1.5">
+      <% alerts.first(3).each do |alert| %>
+        <li class="rounded-lg border px-3 py-2 <%= alert_classes(alert[:severity]) %>">
+          <div class="flex items-baseline justify-between gap-2">
+            <span class="truncate text-sm font-semibold"><%= alert[:event] %></span>
+            <span class="shrink-0 text-[10px] uppercase tracking-wide opacity-70"><%= alert[:severity] %></span>
+          </div>
+          <% if alert[:headline].present? %>
+            <div class="mt-0.5 text-xs opacity-90"><%= alert[:headline] %></div>
+          <% end %>
+          <% if alert[:area].present? %>
+            <div class="mt-0.5 truncate text-[11px] opacity-60"><%= alert[:area] %></div>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+    <% if alerts.size > 3 %>
+      <p class="text-xs text-ink-faint"><%= pluralize(alerts.size - 3, "more alert") %> active.</p>
+    <% end %>
+  <% end %>
+
+  <% if conditions.present? %>
+    <div>
+      <div class="flex items-baseline gap-3">
+        <span class="font-mono text-4xl font-semibold tabular-nums text-ink">
+          <%= conditions[:temperature_f] || "—" %>°
+        </span>
+        <div class="min-w-0">
+          <% if conditions[:summary].present? %>
+            <div class="truncate text-sm text-ink-muted"><%= conditions[:summary] %></div>
+          <% end %>
+          <div class="truncate text-xs text-ink-faint">
+            <%= data[:location] %><%= " · #{conditions[:station]}" if conditions[:station].present? %>
+          </div>
+        </div>
+      </div>
+
+      <dl class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink-muted">
+        <%# Only worth the space when it differs from the actual temperature. %>
+        <% if conditions[:feels_like_f].present? && conditions[:feels_like_f] != conditions[:temperature_f] %>
+          <div><dt class="inline text-ink-faint">Feels</dt> <dd class="inline tabular-nums"><%= conditions[:feels_like_f] %>°</dd></div>
+        <% end %>
+        <% if conditions[:humidity].present? %>
+          <div><dt class="inline text-ink-faint">Humidity</dt> <dd class="inline tabular-nums"><%= conditions[:humidity] %>%</dd></div>
+        <% end %>
+        <% if conditions[:wind_mph].present? %>
+          <div>
+            <dt class="inline text-ink-faint">Wind</dt>
+            <dd class="inline tabular-nums">
+              <%= conditions[:wind_mph] %> mph <%= conditions[:wind_direction] %><%= " · gusts #{conditions[:wind_gust_mph]}" if conditions[:wind_gust_mph].present? %>
+            </dd>
+          </div>
+        <% end %>
+        <% if conditions[:pressure_in].present? %>
+          <div>
+            <dt class="inline text-ink-faint">Pressure</dt>
+            <dd class="inline tabular-nums"><%= conditions[:pressure_in] %>"<%= " #{conditions[:pressure_trend]}" if conditions[:pressure_trend].present? %></dd>
+          </div>
+        <% end %>
+        <% if conditions[:uv].present? %>
+          <div><dt class="inline text-ink-faint">UV</dt> <dd class="inline tabular-nums"><%= conditions[:uv] %></dd></div>
+        <% end %>
+        <% if conditions[:rain_today_in].present? && conditions[:rain_today_in].to_f.positive? %>
+          <div><dt class="inline text-ink-faint">Rain today</dt> <dd class="inline tabular-nums"><%= conditions[:rain_today_in] %>"</dd></div>
+        <% end %>
+        <% if conditions[:lightning_strikes_3h].to_i.positive? %>
+          <div class="text-warn">
+            <dt class="inline">Lightning</dt>
+            <dd class="inline tabular-nums"><%= pluralize(conditions[:lightning_strikes_3h], "strike") %>/3h</dd>
+          </div>
+        <% end %>
+      </dl>
+    </div>
+  <% elsif alerts.empty? %>
+    <p class="text-sm text-ink-faint">No conditions reported.</p>
+  <% end %>
+
+  <% if data[:radar_url].present? %>
+    <div class="mt-auto overflow-hidden rounded-lg border border-line bg-canvas">
+      <%# The loop is a static GIF served by NWS; it animates on its own. %>
+      <%= image_tag data[:radar_url], alt: "Weather radar loop", loading: "lazy",
+            class: "w-full object-cover" %>
+    </div>
+  <% end %>
+
+  <% if data[:partial] %>
+    <p class="text-xs text-warn/80">Some weather sources couldn't be reached.</p>
+  <% end %>
+</div>

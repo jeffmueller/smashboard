@@ -1,0 +1,48 @@
+<div id="bookmarks-list">
+  <% if bookmarks.empty? %>
+    <p class="text-sm text-ink-faint">No bookmarks yet.</p>
+  <% else %>
+    <ul class="max-w-2xl space-y-1.5"
+        data-controller="reorder"
+        data-reorder-url-value="<%= reorder_bookmarks_path %>"
+        data-reorder-param-value="bookmark_ids">
+      <% bookmarks.each do |bookmark| %>
+        <li class="rounded-lg border border-line bg-surface"
+            data-reorder-target="item"
+            data-reorder-id="<%= bookmark.id %>"
+            draggable="true"
+            data-action="dragstart->reorder#dragStart dragover->reorder#dragOver dragend->reorder#dragEnd drop->reorder#drop">
+          <div class="flex items-center gap-3 px-3 py-2">
+            <span class="cursor-grab select-none text-ink-faint" title="Drag to reorder" aria-hidden="true">⠿</span>
+
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-raised text-sm <%= bookmark.icon.present? ? "" : "font-semibold text-ink-muted" %>">
+              <%= bookmark.icon.presence || bookmark.initial %>
+            </span>
+
+            <span class="min-w-0 flex-1">
+              <%= link_to bookmark.title, bookmark.url, target: "_blank", rel: "noopener noreferrer",
+                    class: "block truncate text-sm text-ink hover:text-accent" %>
+              <% subtitle = bookmark.host == bookmark.title ? bookmark.url : (bookmark.host || bookmark.url) %>
+              <span class="block truncate text-xs text-ink-faint"><%= subtitle %></span>
+            </span>
+
+            <details class="relative">
+              <summary class="cursor-pointer list-none text-xs text-ink-muted hover:text-ink">Edit</summary>
+              <%= form_with model: bookmark, url: bookmark_path(bookmark), method: :patch,
+                    class: "absolute right-0 z-10 mt-2 w-80 space-y-2 rounded-lg border border-line bg-surface p-3 shadow-lg" do |f| %>
+                <%= f.text_field :title, class: "w-full rounded-md border border-line bg-canvas/60 px-2.5 py-1.5 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
+                <%= f.text_field :url, class: "w-full rounded-md border border-line bg-canvas/60 px-2.5 py-1.5 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
+                <%= render "bookmarks/emoji_field", f: f %>
+                <%= f.submit "Save", class: "w-full rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-ink hover:bg-accent" %>
+              <% end %>
+            </details>
+
+            <%= button_to "Delete", bookmark_path(bookmark), method: :delete,
+                  form: { data: { turbo_confirm: "Delete this bookmark?" } },
+                  class: "shrink-0 text-xs text-danger hover:opacity-80" %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>

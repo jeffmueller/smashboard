@@ -1,0 +1,5 @@
+# Pinned here as well as in .rubocop.yml's TargetRubyVersion.
+# .ruby-version alone is honoured by an interactive shell
+# with `mise activate`, but not by non-interactive tooling or CI.
+[tools]
+ruby = "3.4.7"

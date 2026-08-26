@@ -1,0 +1,20 @@
+@import "tailwindcss";
+@import "./themes.css";
+
+/* `inline` matters here: the values are themselves var() references that change
+   per theme, and without it Tailwind would snapshot them into new variables and
+   opacity modifiers like bg-accent/10 would resolve against the wrong colour. */
+@theme inline {
+  --color-canvas: var(--sb-canvas);
+  --color-surface: var(--sb-surface);
+  --color-raised: var(--sb-raised);
+  --color-line: var(--sb-line);
+  --color-ink: var(--sb-ink);
+  --color-ink-muted: var(--sb-ink-muted);
+  --color-ink-faint: var(--sb-ink-faint);
+  --color-accent: var(--sb-accent);
+  --color-ok: var(--sb-ok);
+  --color-warn: var(--sb-warn);
+  --color-danger: var(--sb-danger);
+  --color-info: var(--sb-info);
+}

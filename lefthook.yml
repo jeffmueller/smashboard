@@ -1,0 +1,6 @@
+pre-commit:
+  parallel: true
+  commands:
+    rubocop:
+      description: "Lint staged Ruby files"
+      run: bundle exec rubocop --force-exclusion {staged_files}

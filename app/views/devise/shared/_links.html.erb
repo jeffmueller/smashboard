@@ -1,0 +1,15 @@
+<% link = "text-ink-muted hover:text-ink" %>
+
+<div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+  <% if controller_name != "sessions" %>
+    <%= link_to "Sign in", new_session_path(resource_name), class: link %>
+  <% end %>
+
+  <% if devise_mapping.registerable? && controller_name != "registrations" %>
+    <%= link_to "Create an account", new_registration_path(resource_name), class: link %>
+  <% end %>
+
+  <% if devise_mapping.recoverable? && controller_name != "passwords" %>
+    <%= link_to "Forgot your password?", new_password_path(resource_name), class: link %>
+  <% end %>
+</div>

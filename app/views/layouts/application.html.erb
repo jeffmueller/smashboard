@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<%# No attribute when the user follows the OS — the stylesheet's
+    prefers-color-scheme block takes over, so there is no flash and no JS. %>
+<html lang="en" class="h-full" <%= tag.attributes(data: { theme: (current_user.theme_attribute if user_signed_in?) }) %>>
+  <head>
+    <title><%= content_for(:title) || "smashboard" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="<%= user_signed_in? ? current_user.resolved_theme.token("canvas") : "#0e0e14" %>">
+    <%= csrf_meta_tags %>
+    <% if ENV["VAPID_PUBLIC_KEY"].present? %>
+      <meta name="vapid-public-key" content="<%= ENV["VAPID_PUBLIC_KEY"] %>">
+    <% end %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="manifest" href="<%= pwa_manifest_path(format: :json) %>">
+    <%# The 192 for the tab, the 512 for iOS's home screen, which wants a big
+        one and does its own rounding. %>
+    <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="/icon.png" sizes="512x512">
+
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="h-full bg-canvas text-ink antialiased">
+    <div class="min-h-full">
+      <header class="sticky top-0 z-20 border-b border-line/60 bg-canvas/80 backdrop-blur">
+        <div class="mx-auto flex max-w-[1800px] items-center justify-between gap-4 px-4 py-3">
+          <%= link_to root_path, class: "flex items-center gap-2 font-semibold tracking-tight" do %>
+            <span class="inline-block h-2.5 w-2.5 rounded-full bg-ok shadow-[0_0_12px] shadow-ok/60"></span>
+            <span class="text-lg">smashboard</span>
+          <% end %>
+
+          <% if user_signed_in? %>
+            <nav><%= render "shared/nav" %></nav>
+          <% end %>
+        </div>
+      </header>
+
+      <%= render "shared/flash" %>
+
+      <main class="mx-auto max-w-[1800px] px-4 py-6">
+        <%= yield %>
+      </main>
+    </div>
+  </body>
+</html>

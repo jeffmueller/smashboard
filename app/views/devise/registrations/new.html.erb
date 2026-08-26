@@ -1,0 +1,48 @@
+<% content_for :title, "Create an account" %>
+<% content_for :heading, "Create an account" %>
+<% content_for :subheading, "One board for mail, meetings, todos and everything else." %>
+<% field = "mt-1 w-full rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
+<% label = "block text-xs uppercase tracking-wide text-ink-muted" %>
+
+<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "space-y-4" }) do |f| %>
+  <%= render "devise/shared/error_messages", resource: resource %>
+
+  <div class="grid grid-cols-2 gap-3">
+    <label class="block">
+      <span class="<%= label %>">First name</span>
+      <%= f.text_field :first_name, autofocus: true, autocomplete: "given-name", class: field %>
+    </label>
+    <label class="block">
+      <span class="<%= label %>">Last name</span>
+      <%= f.text_field :last_name, autocomplete: "family-name", class: field %>
+    </label>
+  </div>
+
+  <label class="block">
+    <span class="<%= label %>">Email</span>
+    <%= f.email_field :email, autocomplete: "email", class: field %>
+  </label>
+
+  <label class="block">
+    <span class="<%= label %>">Time zone</span>
+    <%= f.time_zone_select :time_zone, ActiveSupport::TimeZone.all,
+          { default: "Eastern Time (US & Canada)" }, class: field %>
+    <span class="mt-1 block text-xs text-ink-faint">Every time on your dashboard is shown in this zone.</span>
+  </label>
+
+  <div class="grid grid-cols-2 gap-3">
+    <label class="block">
+      <span class="<%= label %>">Password</span>
+      <%= f.password_field :password, autocomplete: "new-password", class: field %>
+    </label>
+    <label class="block">
+      <span class="<%= label %>">Confirm</span>
+      <%= f.password_field :password_confirmation, autocomplete: "new-password", class: field %>
+    </label>
+  </div>
+  <% if @minimum_password_length %>
+    <p class="text-xs text-ink-faint">At least <%= @minimum_password_length %> characters.</p>
+  <% end %>
+
+  <%= f.submit "Create account", class: "w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-canvas hover:opacity-90" %>
+<% end %>

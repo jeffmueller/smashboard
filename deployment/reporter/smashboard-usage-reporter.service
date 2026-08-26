@@ -1,0 +1,8 @@
+[Unit]
+Description=Report Claude Code usage to smashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/smashboard-usage-reporter

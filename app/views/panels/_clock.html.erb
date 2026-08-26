@@ -1,0 +1,11 @@
+<div data-controller="clock"
+     data-clock-time-zone-value="<%= data[:time_zone] %>"
+     class="flex h-full flex-col justify-center">
+  <div data-clock-target="time" class="font-mono text-4xl font-semibold tabular-nums tracking-tight text-ink">
+    <%= data[:time] %>
+  </div>
+  <div data-clock-target="date" class="mt-1 text-sm text-ink-muted">
+    <%= data[:date] %>
+  </div>
+  <div class="mt-1 text-xs text-ink-faint"><%= data[:time_zone_abbreviation] %></div>
+</div>

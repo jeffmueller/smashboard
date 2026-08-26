@@ -1,0 +1,7 @@
+<% content_for :title, "Bookmarks" %>
+
+<h1 class="mb-1 text-xl font-semibold tracking-tight">Bookmarks</h1>
+<p class="mb-5 text-sm text-ink-faint">Quick links to your sites and web apps. Drag to reorder.</p>
+
+<%= render "bookmarks/new_form", bookmark: @bookmark %>
+<%= render "bookmarks/list", bookmarks: @bookmarks %>

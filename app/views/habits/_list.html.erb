@@ -1,0 +1,70 @@
+<div id="habits-list">
+  <% if habits.empty? %>
+    <p class="text-sm text-ink-faint">No habits yet.</p>
+  <% else %>
+    <ul class="max-w-2xl space-y-1.5"
+        data-controller="reorder"
+        data-reorder-url-value="<%= reorder_habits_path %>"
+        data-reorder-param-value="habit_ids">
+      <% habits.each do |habit| %>
+        <li class="rounded-lg border border-line bg-surface"
+            data-reorder-target="item"
+            data-reorder-id="<%= habit.id %>"
+            draggable="true"
+            data-action="dragstart->reorder#dragStart dragover->reorder#dragOver dragend->reorder#dragEnd drop->reorder#drop">
+          <div class="flex items-center gap-3 px-3 py-2">
+            <span class="cursor-grab select-none text-ink-faint" title="Drag to reorder" aria-hidden="true">⠿</span>
+
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-raised text-sm <%= habit.icon.present? ? "" : "font-semibold text-ink-muted" %>">
+              <%= habit.icon.presence || habit.initial %>
+            </span>
+
+            <span class="min-w-0 flex-1">
+              <span class="block truncate text-sm text-ink"><%= habit.name %></span>
+              <span class="block truncate text-xs text-ink-faint">
+                <% streak = habit.streak(today: Time.zone.today) %>
+                <%= streak.positive? ? "#{pluralize(streak, "day")} in a row" : "no streak yet" %>
+              </span>
+            </span>
+
+            <details class="relative">
+              <summary class="cursor-pointer list-none text-xs text-ink-muted hover:text-ink">Edit</summary>
+              <%= form_with model: habit, url: habit_path(habit), method: :patch,
+                    class: "absolute right-0 z-10 mt-2 w-72 space-y-2 rounded-lg border border-line bg-surface p-3 shadow-lg" do |f| %>
+                <%= f.text_field :name, class: "w-full rounded-md border border-line bg-canvas/60 px-2.5 py-1.5 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
+                <%= render "habits/emoji_field", f: f %>
+                <%= f.submit "Save", class: "w-full rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-ink hover:bg-accent" %>
+              <% end %>
+            </details>
+
+            <%# Archiving keeps the history; deleting takes the graph with it. %>
+            <%= button_to "Archive", archive_habit_path(habit), method: :post,
+                  class: "shrink-0 text-xs text-ink-muted hover:text-ink" %>
+            <%= button_to "Delete", habit_path(habit), method: :delete,
+                  form: { data: { turbo_confirm: "Delete #{habit.name} and all its history?" } },
+                  class: "shrink-0 text-xs text-danger hover:opacity-80" %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <% if archived.any? %>
+    <div class="mt-6 max-w-2xl">
+      <h2 class="mb-2 text-xs uppercase tracking-wide text-ink-faint">Archived</h2>
+      <ul class="space-y-1.5">
+        <% archived.each do |habit| %>
+          <li class="flex items-center gap-3 rounded-lg border border-line/60 bg-surface/50 px-3 py-2">
+            <span class="w-8 shrink-0 text-center text-sm opacity-60"><%= habit.icon.presence || habit.initial %></span>
+            <span class="min-w-0 flex-1 truncate text-sm text-ink-muted"><%= habit.name %></span>
+            <%= button_to "Restore", unarchive_habit_path(habit), method: :post,
+                  class: "shrink-0 text-xs text-ink-muted hover:text-ink" %>
+            <%= button_to "Delete", habit_path(habit), method: :delete,
+                  form: { data: { turbo_confirm: "Delete #{habit.name} and all its history?" } },
+                  class: "shrink-0 text-xs text-danger hover:opacity-80" %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+</div>

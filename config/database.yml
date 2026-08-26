@@ -1,0 +1,51 @@
+# PostgreSQL. Versions 9.5 and up are supported.
+#
+# Development and test point at the container defined in compose.yaml
+# (`docker compose up -d postgres`), published on 5433 rather than 5432 so it
+# doesn't collide with another Postgres on the same host.
+# Every value is overridable by ENV, and DATABASE_URL wins over all of it.
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV.fetch("SMASHBOARD_DATABASE_HOST", "localhost") %>
+  port: <%= ENV.fetch("SMASHBOARD_DATABASE_PORT", "5433") %>
+  username: <%= ENV.fetch("SMASHBOARD_DATABASE_USER", "smashboard") %>
+  password: <%= ENV.fetch("SMASHBOARD_DATABASE_PASSWORD", "smashboard") %>
+
+development:
+  primary:
+    <<: *default
+    database: smashboard_development
+  queue:
+    <<: *default
+    database: smashboard_development_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *default
+    database: smashboard_development_cable
+    migrations_paths: db/cable_migrate
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  <<: *default
+  database: smashboard_test<%= ENV.fetch("TEST_ENV_NUMBER", "") %>
+
+production:
+  primary: &primary_production
+    <<: *default
+    database: smashboard_production
+  cache:
+    <<: *primary_production
+    database: smashboard_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: smashboard_production_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *primary_production
+    database: smashboard_production_cable
+    migrations_paths: db/cable_migrate

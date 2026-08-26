@@ -1,0 +1,94 @@
+<% field_class = "mt-1 w-full rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
+
+<%= form_with model: connection, class: "max-w-xl space-y-5" do |f| %>
+  <% if connection.errors.any? %>
+    <div class="rounded-lg border border-danger/40 bg-danger/10 p-3 text-sm text-danger">
+      <ul class="list-inside list-disc">
+        <% connection.errors.full_messages.each do |message| %><li><%= message %></li><% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%# The provider is fixed for the life of a connection: its fields, and the
+      credentials already stored against them, only make sense for one. %>
+  <%= f.hidden_field :provider %>
+
+  <div class="rounded-lg border border-line bg-surface p-4">
+    <div class="text-sm font-medium text-ink"><%= provider.label %></div>
+    <p class="mt-1 text-xs text-ink-muted"><%= provider.summary %></p>
+    <% if provider.guidance.present? %>
+      <p class="mt-2 border-t border-line/60 pt-2 text-xs text-ink-faint"><%= provider.guidance %></p>
+    <% end %>
+  </div>
+
+  <label class="block">
+    <span class="block text-xs uppercase tracking-wide text-ink-muted">Name</span>
+    <%= f.text_field :label, class: field_class %>
+    <span class="mt-1 block text-xs text-ink-faint">
+      How this shows up on the dashboard — "Work Gmail", "Home Slack".
+      Add another <%= provider.label %> connection any time.
+    </span>
+  </label>
+
+  <% if provider.settings.any? %>
+    <fieldset class="rounded-lg border border-line p-4">
+      <legend class="px-1 text-xs uppercase tracking-wide text-ink-muted">Settings</legend>
+      <div class="space-y-3">
+        <% provider.settings.each do |setting| %>
+          <label class="block">
+            <span class="text-xs text-ink-muted">
+              <%= setting.label %><% if setting.optional? %> <span class="text-ink-faint">(optional)</span><% end %>
+            </span>
+            <%= text_field_tag "connection[settings][#{setting.key}]", connection.settings[setting.key],
+                  placeholder: setting.placeholder, class: field_class %>
+            <% if setting.hint.present? %>
+              <span class="mt-1 block text-xs text-ink-faint"><%= setting.hint %></span>
+            <% end %>
+          </label>
+        <% end %>
+      </div>
+    </fieldset>
+  <% end %>
+
+  <% if provider.oauth? && connection.persisted? %>
+    <div class="rounded-lg border border-line p-4">
+      <div class="text-xs uppercase tracking-wide text-ink-muted">Authorization</div>
+      <p class="mt-2 text-xs text-ink-faint">
+        <% if connection.credential('refresh_token').present? %>
+          Signed in with Google. Reconnect if access was revoked or the calendars you share changed.
+        <% else %>
+          Not signed in yet — this connection can't read anything until you do.
+        <% end %>
+      </p>
+      <%= link_to "Reconnect with Google", reconnect_path(connection, provider),
+            class: "mt-3 inline-flex rounded-md border border-accent/40 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent hover:bg-accent/20" %>
+    </div>
+  <% end %>
+
+  <% if provider.credentials.any? %>
+    <fieldset class="rounded-lg border border-line p-4">
+      <legend class="px-1 text-xs uppercase tracking-wide text-ink-muted">Credentials</legend>
+      <p class="mb-3 text-xs text-ink-faint">
+        Encrypted at rest and never shown again.
+        <% if connection.persisted? %>Leave blank to keep what's already stored.<% end %>
+      </p>
+      <div class="space-y-3">
+        <% provider.credentials.each do |credential| %>
+          <label class="block">
+            <span class="text-xs text-ink-muted"><%= credential.label %></span>
+            <%= password_field_tag "connection[credentials][#{credential.key}]", nil,
+                  autocomplete: "new-password", placeholder: credential.placeholder, class: field_class %>
+            <% if credential.hint.present? %>
+              <span class="mt-1 block text-xs text-ink-faint"><%= credential.hint %></span>
+            <% end %>
+          </label>
+        <% end %>
+      </div>
+    </fieldset>
+  <% end %>
+
+  <div class="flex items-center gap-3">
+    <%= f.submit class: "rounded-md bg-accent px-4 py-2 text-sm font-medium text-canvas hover:opacity-90" %>
+    <%= link_to "Cancel", connections_path, class: "text-sm text-ink-muted hover:text-ink" %>
+  </div>
+<% end %>

@@ -1,0 +1,74 @@
+<%= form_with model: countdown, class: "space-y-5" do |f| %>
+  <% if countdown.errors.any? %>
+    <div class="rounded-lg border border-danger/40 bg-danger/10 p-3 text-sm text-danger">
+      <ul class="list-inside list-disc">
+        <% countdown.errors.full_messages.each do |message| %><li><%= message %></li><% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <label class="block">
+      <span class="text-xs uppercase tracking-wide text-ink-muted">Name</span>
+      <%= f.text_field :name, class: "mt-1 w-full rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
+    </label>
+
+    <label class="block">
+      <span class="text-xs uppercase tracking-wide text-ink-muted">Colour</span>
+      <%= f.select :color, Countdown::COLORS.map { |c| [c.humanize, c] }, {},
+            class: "mt-1 w-full rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
+    </label>
+  </div>
+
+  <label class="block">
+    <span class="text-xs uppercase tracking-wide text-ink-muted">Description</span>
+    <%= f.text_field :description, class: "mt-1 w-full rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
+  </label>
+
+  <fieldset class="rounded-lg border border-line p-4">
+    <legend class="px-1 text-xs uppercase tracking-wide text-ink-muted">One-time event</legend>
+    <p class="mb-2 text-xs text-ink-faint">For something that happens once — a concert, a flight, a deadline.</p>
+    <%= f.datetime_field :target_at, class: "w-full rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
+  </fieldset>
+
+  <fieldset class="rounded-lg border border-line p-4">
+    <legend class="px-1 text-xs uppercase tracking-wide text-ink-muted">Repeating event</legend>
+    <p class="mb-3 text-xs text-ink-faint">
+      Fill this in instead for something on a schedule. Dismissing one occurrence only skips that one —
+      it comes back on the next.
+    </p>
+
+    <div class="grid gap-4 sm:grid-cols-3">
+      <label class="block sm:col-span-2">
+        <span class="text-xs uppercase tracking-wide text-ink-muted">Repeats</span>
+        <%= f.select :rrule,
+              [
+                ["Never", ""],
+                ["Every weekday", "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR"],
+                ["Every day", "FREQ=DAILY"],
+                ["Every Monday", "FREQ=WEEKLY;BYDAY=MO"],
+                ["Every Saturday", "FREQ=WEEKLY;BYDAY=SA"],
+                ["Every Sunday", "FREQ=WEEKLY;BYDAY=SU"],
+                ["Monthly", "FREQ=MONTHLY"],
+                ["Yearly", "FREQ=YEARLY"]
+              ], {},
+              class: "mt-1 w-full rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
+      </label>
+
+      <label class="block">
+        <span class="text-xs uppercase tracking-wide text-ink-muted">At</span>
+        <%= f.time_field :occurs_at_time, class: "mt-1 w-full rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
+      </label>
+    </div>
+
+    <label class="mt-4 block">
+      <span class="text-xs uppercase tracking-wide text-ink-muted">Starting on</span>
+      <%= f.date_field :starts_on, class: "mt-1 w-full rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink focus:border-accent/60 focus:outline-none sm:w-1/3" %>
+    </label>
+  </fieldset>
+
+  <div class="flex items-center gap-3">
+    <%= f.submit class: "rounded-md bg-accent px-4 py-2 text-sm font-medium text-ink hover:bg-accent" %>
+    <%= link_to "Cancel", countdowns_path, class: "text-sm text-ink-muted hover:text-ink" %>
+  </div>
+<% end %>

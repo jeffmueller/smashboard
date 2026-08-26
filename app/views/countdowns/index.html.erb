@@ -1,0 +1,41 @@
+<% content_for :title, "Countdowns" %>
+
+<div class="mb-5 flex items-center justify-between">
+  <h1 class="text-xl font-semibold tracking-tight">Countdowns</h1>
+  <%= link_to "New countdown", new_countdown_path, class: "rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-ink hover:bg-accent" %>
+</div>
+
+<% if @countdowns.empty? %>
+  <p class="text-sm text-ink-faint">No countdowns yet.</p>
+<% else %>
+  <ul class="space-y-2">
+    <% @countdowns.each do |countdown| %>
+      <% next_at = countdown.next_occurrence_at %>
+      <li class="flex items-center justify-between gap-4 rounded-lg border border-line bg-surface px-4 py-3">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="inline-block h-2 w-2 rounded-full <%= accent_classes(countdown.color).split.last %>"></span>
+            <span class="font-medium text-ink"><%= countdown.name %></span>
+            <% if countdown.recurring? %>
+              <span class="rounded bg-raised px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-ink-muted">Repeating</span>
+            <% end %>
+          </div>
+          <div class="mt-0.5 text-xs text-ink-faint">
+            <% if next_at %>
+              Next: <%= next_at.in_time_zone(countdown.zone).strftime("%a %b %-d, %-I:%M %p %Z") %>
+            <% else %>
+              No upcoming occurrence
+            <% end %>
+          </div>
+        </div>
+
+        <div class="flex shrink-0 items-center gap-2 text-sm">
+          <%= link_to "Edit", edit_countdown_path(countdown), class: "text-ink-muted hover:text-ink" %>
+          <%= button_to "Delete", countdown_path(countdown), method: :delete,
+                form: { data: { turbo_confirm: "Delete #{countdown.name} permanently?" } },
+                class: "text-danger hover:text-danger" %>
+        </div>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

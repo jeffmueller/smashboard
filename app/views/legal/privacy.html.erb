@@ -1,0 +1,95 @@
+<% content_for :title, "Privacy Policy" %>
+
+<%= render "legal/document", title: "Privacy Policy" do %>
+  <p>
+    <strong><%= Legal::SERVICE_NAME %></strong> is a self-hosted personal dashboard. This
+    installation is run by an individual operator on their own hardware; there is
+    no company behind it and no third party operating it on their behalf. This
+    policy describes what the software stores and what it does with it.
+  </p>
+
+  <h2>What is stored</h2>
+  <ul>
+    <li><strong>Your account</strong> — email address, an encrypted password hash, and optionally your name, time zone and postal code (used to pick a weather location).</li>
+    <li><strong>Credentials for accounts you connect</strong> — OAuth tokens, app passwords and API keys for the services you choose to link. These are encrypted at rest and are never displayed back to you after saving.</li>
+    <li><strong>Cached panel data</strong> — the most recent result of each connected service, so the dashboard renders without waiting on a third party. Each refresh replaces the previous copy.</li>
+    <li><strong>Things you create here</strong> — todos, countdowns, habits and bookmarks. A habit also keeps the dates you marked it done, which is what the activity graph is drawn from.</li>
+    <li><strong>Notification subscriptions</strong> — if you enable push notifications, the browser endpoint needed to deliver them.</li>
+    <li><strong>Usage reports you push</strong> — if you install the usage reporter, the token counts and rate-limit figures it sends from your own machines.</li>
+  </ul>
+
+  <h2>What is not done with it</h2>
+  <p>
+    Your data is not sold, rented, or shared with anyone. It is not used for
+    advertising or profiling, and it is not used to train machine learning
+    models. There are no analytics, trackers or third-party scripts on any page
+    of this application.
+  </p>
+
+  <h2>Data from services you connect</h2>
+  <p>
+    When you connect an account, this application reads only what the
+    corresponding panel needs, using read-only permissions wherever the service
+    offers them:
+  </p>
+  <ul>
+    <li><strong>Google Calendar</strong> — events in your calendars for the current day, to list today's meetings and their video-call links.</li>
+    <li><strong>Gmail</strong> — unread message counts and the sender and subject of recent unread messages, to show a mail summary. Message bodies and attachments are not read or stored.</li>
+    <li><strong>Slack</strong> — unread conversation counts for the workspaces you connect.</li>
+    <li><strong>GitHub</strong> — your notifications and the pull requests awaiting your review.</li>
+    <li><strong>IMAP mailboxes</strong> — unread counts and message headers.</li>
+    <li><strong>Home Assistant</strong> — camera snapshots, proxied through this server so your cameras are not exposed directly.</li>
+    <li><strong>Weather services</strong> — forecasts and alerts for a location you specify.</li>
+  </ul>
+  <p>
+    This data is fetched only to be displayed on your own dashboard. It is
+    stored solely as the cache described above, and is not transferred to anyone
+    else.
+  </p>
+
+  <h2>Google user data</h2>
+  <p>
+    <% policy_url = "https://developers.google.com/terms/api-services-user-data-policy" %>
+    Use and transfer of information received from Google APIs adheres to the
+    <%= link_to "Google API Services User Data Policy", policy_url, rel: "noopener noreferrer", target: "_blank" %>,
+    including the Limited Use requirements.
+    Specifically: Google user data is used only to provide the calendar and mail
+    panels you have enabled, is never sold, is never used for advertising, and is
+    never read by a human except where you have explicitly asked for support or
+    where required by law.
+  </p>
+
+  <h2>Retention and deletion</h2>
+  <ul>
+    <li>Disconnecting an account deletes its stored credentials and its cached data immediately.</li>
+    <li>Deleting your account removes everything associated with it.</li>
+    <li>Cached panel data is overwritten on each refresh and is not archived.</li>
+    <li>You can revoke this application's access from the service's own settings at any time — for Google, at <a href="https://myaccount.google.com/permissions" rel="noopener noreferrer" target="_blank">myaccount.google.com/permissions</a>.</li>
+  </ul>
+
+  <h2>Security</h2>
+  <p>
+    Connection credentials are encrypted at rest. All traffic is served over
+    HTTPS. Because this is a self-hosted installation, its security also depends
+    on the machine it runs on and on the operator who maintains it.
+  </p>
+
+  <h2>Children</h2>
+  <p>This application is not directed at children under 13 and no account should be created for one.</p>
+
+  <h2>Changes</h2>
+  <p>
+    If this policy changes, the date at the top of this page changes with it.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    <% if Legal.contact %>
+      Questions about this policy, or requests to see or delete your data, can go to
+      <a href="mailto:<%= Legal.contact %>"><%= Legal.contact %></a>.
+    <% else %>
+      Questions about this policy, or requests to see or delete your data, should
+      go to the operator of this installation.
+    <% end %>
+  </p>
+<% end %>

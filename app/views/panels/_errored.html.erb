@@ -1,0 +1,6 @@
+<div class="flex h-full flex-col justify-center gap-2 text-sm">
+  <p class="text-danger">Last refresh failed.</p>
+  <p class="text-xs text-ink-faint"><%= panel.last_error %></p>
+  <%= button_to "Retry", refresh_panel_path(panel), method: :post,
+        class: "w-fit rounded-md border border-line px-2.5 py-1 text-xs text-ink-muted hover:bg-raised" %>
+</div>

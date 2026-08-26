@@ -1,0 +1,46 @@
+<% content_for :title, "Connections" %>
+
+<div class="mb-5 flex items-center justify-between">
+  <h1 class="text-xl font-semibold tracking-tight">Connections</h1>
+  <%= link_to "Connect an account", new_connection_path, class: "rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-ink hover:bg-accent" %>
+</div>
+
+<% if @connections.empty? %>
+  <p class="text-sm text-ink-faint">No accounts connected yet.</p>
+<% else %>
+  <ul class="max-w-3xl space-y-2">
+    <% @connections.each do |connection| %>
+      <li class="flex items-center justify-between gap-4 rounded-lg border border-line bg-surface px-4 py-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-medium text-ink"><%= connection.label %></span>
+            <span class="rounded bg-raised px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-ink-muted"><%= connection.provider.humanize %></span>
+          </div>
+          <div class="mt-0.5 text-xs <%= connection.status == "error" ? "text-danger" : "text-ink-faint" %>">
+            <% if connection.status == "error" %>
+              <%= connection.last_error %>
+            <% elsif connection.last_synced_at %>
+              Synced <%= time_ago_in_words(connection.last_synced_at) %> ago<%
+                %><% if connection.authorized_at %>, signed in <%= time_ago_in_words(connection.authorized_at) %> ago<% end %>
+            <% else %>
+              Never synced
+            <% end %>
+          </div>
+        </div>
+        <div class="flex shrink-0 items-center gap-3 text-sm">
+          <%# A revoked or lapsed grant is fixed by signing in again, so offer
+              that right where the failure is shown rather than a form. %>
+          <% provider = ConnectionProvider.find(connection.provider) %>
+          <% if provider&.oauth? %>
+            <%= link_to "Reconnect", reconnect_path(connection, provider),
+                  class: connection.status == "error" ? "text-warn hover:opacity-80" : "text-ink-muted hover:text-ink" %>
+          <% end %>
+          <%= link_to "Edit", edit_connection_path(connection), class: "text-ink-muted hover:text-ink" %>
+          <%= button_to "Disconnect", connection_path(connection), method: :delete,
+                form: { data: { turbo_confirm: "Disconnect #{connection.label}?" } },
+                class: "text-danger hover:text-danger" %>
+        </div>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

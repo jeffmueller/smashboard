@@ -1,0 +1,17 @@
+<div id="new-bookmark" class="mb-6 max-w-2xl">
+  <%= form_with model: bookmark, url: bookmarks_path, method: :post do |f| %>
+    <% if bookmark.errors.any? %>
+      <p class="mb-2 text-sm text-danger"><%= bookmark.errors.full_messages.to_sentence %></p>
+    <% end %>
+
+    <div class="flex gap-2">
+      <%= f.text_field :url, placeholder: "example.com", autocomplete: "off",
+            class: "flex-1 rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent/60 focus:outline-none" %>
+      <%= f.text_field :title, placeholder: "Name (optional)", autocomplete: "off",
+            class: "w-48 rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent/60 focus:outline-none" %>
+      <div class="w-16 shrink-0"><%= render "bookmarks/emoji_field", f: f %></div>
+      <%= f.submit "Add", class: "shrink-0 rounded-md bg-accent px-4 py-2 text-sm font-medium text-ink hover:bg-accent" %>
+    </div>
+    <p class="mt-1.5 text-xs text-ink-faint">Leave the name blank to use the site's domain.</p>
+  <% end %>
+</div>

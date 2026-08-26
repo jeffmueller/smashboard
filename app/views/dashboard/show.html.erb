@@ -1,0 +1,23 @@
+<% content_for :title, "smashboard" %>
+
+<%= turbo_stream_from current_user, :dashboard %>
+
+<div class="mb-4 flex items-center justify-between">
+  <div>
+    <h1 class="text-xl font-semibold tracking-tight">Good <%= Time.current.in_time_zone(current_user.zone).hour < 12 ? "morning" : Time.current.in_time_zone(current_user.zone).hour < 18 ? "afternoon" : "evening" %>, <%= current_user.display_name %></h1>
+    <p class="text-sm text-ink-muted">
+      Drag a panel by its header to rearrange it, or use its menu to resize or hide it.
+    </p>
+  </div>
+</div>
+
+<div
+  id="dashboard"
+  class="grid grid-flow-row-dense grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+  data-controller="reorder"
+  data-reorder-url-value="<%= reorder_panels_path %>"
+  data-reorder-param-value="panel_ids">
+  <%= render partial: "panels/panel", collection: @panels, as: :panel %>
+</div>
+
+<%= render "dashboard/hidden", panels: @hidden %>

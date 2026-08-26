@@ -1,0 +1,45 @@
+<% cameras = data[:cameras] || [] %>
+
+<% if cameras.empty? %>
+  <div class="flex h-full flex-col justify-center text-sm">
+    <p class="text-ink-faint">Home Assistant reports no cameras.</p>
+  </div>
+<% else %>
+  <div class="flex h-full flex-col"
+       data-controller="camera-refresh"
+       data-camera-refresh-interval-value="<%= data[:refresh_seconds] || 30 %>">
+    <div class="grid flex-1 grid-cols-2 gap-2">
+      <% cameras.each do |camera| %>
+        <figure class="relative overflow-hidden rounded-lg border border-line bg-canvas">
+          <% if camera[:available] %>
+            <%= image_tag "",
+                  alt: camera[:name],
+                  loading: "lazy",
+                  class: "aspect-video w-full bg-canvas object-cover transition-opacity duration-300",
+                  data: {
+                    camera_refresh_target: "image",
+                    src: camera_snapshot_path(connection_id: camera[:connection_id], entity_id: camera[:entity_id]),
+                    action: "load->camera-refresh#loaded error->camera-refresh#failed"
+                  } %>
+          <% else %>
+            <div class="flex aspect-video w-full items-center justify-center bg-canvas text-xs text-ink-faint">
+              Unavailable
+            </div>
+          <% end %>
+
+          <figcaption class="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-canvas/80 to-transparent px-2 py-1.5">
+            <span class="truncate text-xs font-medium text-ink"><%= camera[:name] %></span>
+            <span class="shrink-0 text-[10px] uppercase tracking-wide text-ink-muted"><%= camera[:state] %></span>
+          </figcaption>
+        </figure>
+      <% end %>
+    </div>
+
+    <p class="mt-2 text-xs text-ink-faint">
+      <span data-camera-refresh-target="status">Refreshing every <%= data[:refresh_seconds] || 30 %>s</span>
+      <% if data[:partial] %>
+        <span class="text-warn/80">· some cameras couldn't be reached</span>
+      <% end %>
+    </p>
+  </div>
+<% end %>

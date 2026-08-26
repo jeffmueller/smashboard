@@ -1,0 +1,32 @@
+<% content_for :title, "Todos" %>
+
+<h1 class="mb-5 text-xl font-semibold tracking-tight">Todos</h1>
+
+<%= form_with url: todos_path, method: :post, class: "mb-5 max-w-2xl" do |f| %>
+  <%= f.text_field "todo[title]", placeholder: "Add a todo…", autocomplete: "off",
+        class: "w-full rounded-md border border-line bg-canvas/60 px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent/60 focus:outline-none" %>
+<% end %>
+
+<% if @todos.empty? %>
+  <p class="text-sm text-ink-faint">Nothing open.</p>
+<% else %>
+  <ul class="max-w-2xl space-y-1.5">
+    <% @todos.each do |todo| %>
+      <li class="flex items-center gap-3 rounded-lg border border-line bg-surface px-3 py-2">
+        <%= button_to complete_todo_path(todo), method: :post,
+              class: "h-4 w-4 shrink-0 rounded border border-line hover:border-ok hover:bg-ok/20" do %>
+          <span class="sr-only">Complete <%= todo.title %></span>
+        <% end %>
+        <span class="flex-1 truncate text-sm <%= todo.flagged? ? "text-warn" : "text-ink" %>"><%= todo.title %></span>
+        <% if todo.due_at %>
+          <span class="shrink-0 text-xs <%= todo.overdue? ? "text-danger" : "text-ink-faint" %>">
+            <%= todo.due_at.in_time_zone(current_user.zone).strftime("%b %-d, %-I:%M %p") %>
+          </span>
+        <% end %>
+        <%= button_to "Delete", todo_path(todo), method: :delete,
+              form: { data: { turbo_confirm: "Delete this todo?" } },
+              class: "shrink-0 text-xs text-danger hover:text-danger" %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

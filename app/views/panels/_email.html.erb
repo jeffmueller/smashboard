@@ -1,0 +1,53 @@
+<% accounts = data[:accounts] || [] %>
+
+<% if accounts.empty? %>
+  <p class="text-sm text-ink-faint">No mailboxes connected.</p>
+<% elsif data[:total_unread].to_i.zero? %>
+  <div class="flex h-full flex-col justify-center text-sm">
+    <p class="text-ink-faint">No unread mail.</p>
+  </div>
+<% else %>
+  <div class="flex h-full flex-col gap-3">
+    <% accounts.each do |account| %>
+      <div>
+        <div class="mb-1.5 flex items-baseline gap-2">
+          <span class="text-xs font-medium uppercase tracking-wide text-ink-muted"><%= account[:label] %></span>
+          <span class="font-mono text-sm tabular-nums <%= account[:unread_count].to_i.positive? ? "text-accent" : "text-ink-faint" %>">
+            <%= account[:unread_count] %>
+          </span>
+          <span class="text-xs text-ink-faint">unread</span>
+        </div>
+
+        <% messages = account[:messages] || [] %>
+        <% if messages.empty? %>
+          <p class="text-xs text-ink-faint">Nothing new.</p>
+        <% else %>
+          <ul class="space-y-1.5">
+            <% messages.each do |message| %>
+              <li class="rounded-md border border-line bg-raised/40 px-2.5 py-1.5">
+                <div class="flex items-baseline justify-between gap-2">
+                  <span class="truncate text-sm font-medium text-ink"><%= message[:from] %></span>
+                  <% if message[:received_at].present? %>
+                    <span class="shrink-0 text-[11px] text-ink-faint">
+                      <%= Time.iso8601(message[:received_at]).in_time_zone(current_user.zone).strftime("%-I:%M %p") rescue nil %>
+                    </span>
+                  <% end %>
+                </div>
+                <div class="truncate text-sm text-ink-muted"><%= message[:subject] %></div>
+                <% if message[:preview].present? %>
+                  <div class="truncate text-xs text-ink-faint"><%= message[:preview] %></div>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if data[:partial] %>
+      <p class="mt-auto border-t border-line/60 pt-2 text-xs text-warn/80">
+        Some mailboxes couldn't be reached.
+      </p>
+    <% end %>
+  </div>
+<% end %>

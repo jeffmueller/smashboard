@@ -1,0 +1,18 @@
+<% content_for :title, @provider ? "Connect #{@provider.label}" : "Add a connection" %>
+
+<div class="max-w-2xl">
+  <div class="mb-1 flex items-baseline gap-3">
+    <h1 class="text-xl font-semibold tracking-tight">
+      <%= @provider ? "Connect #{@provider.label}" : "Add a connection" %>
+    </h1>
+    <% if @provider %>
+      <%= link_to "Choose something else", new_connection_path, class: "text-xs text-ink-muted hover:text-ink" %>
+    <% end %>
+  </div>
+
+  <% if @provider %>
+    <div class="mt-4"><%= render "form", connection: @connection, provider: @provider %></div>
+  <% else %>
+    <%= render "picker" %>
+  <% end %>
+</div>

@@ -1,0 +1,16 @@
+<div id="hidden-panels">
+  <% if panels.any? %>
+    <div class="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2">
+      <span class="text-xs uppercase tracking-wide text-ink-faint">Hidden</span>
+
+      <% panels.each do |panel| %>
+        <%= button_to panel_path(panel), method: :patch,
+              params: { "panel[enabled]" => true },
+              form: { class: "inline" },
+              class: "rounded-md border border-line px-2 py-1 text-xs text-ink-muted hover:border-accent/60 hover:text-ink" do %>
+          <%= panel.display_title %> <span class="text-ink-faint">+</span>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,49 @@
+<% todos = data[:todos] || [] %>
+
+<div class="flex h-full flex-col">
+  <%= form_with url: todos_path, method: :post, class: "mb-3" do |f| %>
+    <%= f.text_field "todo[title]",
+          placeholder: "Add a todo…",
+          autocomplete: "off",
+          class: "w-full rounded-md border border-line bg-canvas/60 px-3 py-1.5 text-sm text-ink placeholder:text-ink-faint focus:border-accent/60 focus:outline-none" %>
+  <% end %>
+
+  <% if todos.empty? %>
+    <p class="flex-1 text-sm text-ink-faint">Nothing due today. Enjoy it.</p>
+  <% else %>
+    <ul class="flex-1 space-y-1.5">
+      <% todos.each do |todo| %>
+        <li class="flex items-start gap-2.5">
+          <%= button_to complete_todo_path(todo[:id]), method: :post,
+                class: "mt-0.5 h-4 w-4 shrink-0 rounded border border-line hover:border-ok hover:bg-ok/20",
+                title: "Complete" do %>
+            <span class="sr-only">Complete <%= todo[:title] %></span>
+          <% end %>
+
+          <div class="min-w-0 flex-1">
+            <div class="flex items-baseline gap-2">
+              <span class="truncate text-sm <%= todo[:flagged] ? "text-warn" : "text-ink" %>">
+                <%= todo[:title] %>
+              </span>
+              <% if todo[:due_label].present? %>
+                <span class="shrink-0 text-xs <%= todo[:overdue] ? "text-danger" : "text-ink-faint" %>">
+                  <%= todo[:due_label] %>
+                </span>
+              <% end %>
+            </div>
+            <% if todo[:project].present? %>
+              <span class="text-xs text-ink-faint"><%= todo[:project][:name] %></span>
+            <% end %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <div class="mt-3 flex gap-4 border-t border-line/60 pt-2 text-xs text-ink-faint">
+    <span><%= pluralize(data[:remaining_count].to_i, "open item") %></span>
+    <% if data[:overdue_count].to_i.positive? %>
+      <span class="text-danger"><%= data[:overdue_count] %> overdue</span>
+    <% end %>
+  </div>
+</div>

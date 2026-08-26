@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full" <%= tag.attributes(data: { theme: (current_user.theme_attribute if user_signed_in?) }) %>>
+  <head>
+    <title><%= content_for(:title) || "smashboard" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="theme-color" content="#071C42">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="h-full bg-canvas text-ink antialiased">
+    <div class="min-h-full">
+      <header class="border-b border-line/60">
+        <div class="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3">
+          <%= link_to root_path, class: "flex items-center gap-2 font-semibold tracking-tight" do %>
+            <span class="inline-block h-2.5 w-2.5 rounded-full bg-ok shadow-[0_0_12px] shadow-ok/60"></span>
+            <span class="text-lg">smashboard</span>
+          <% end %>
+          <nav class="flex items-center gap-1 text-sm">
+            <%= link_to "Privacy", privacy_path, class: "rounded-md px-3 py-1.5 #{current_page?(privacy_path) ? "bg-raised text-ink" : "text-ink-muted hover:bg-raised hover:text-ink"}" %>
+            <%= link_to "Terms", terms_path, class: "rounded-md px-3 py-1.5 #{current_page?(terms_path) ? "bg-raised text-ink" : "text-ink-muted hover:bg-raised hover:text-ink"}" %>
+          </nav>
+        </div>
+      </header>
+
+      <main class="mx-auto max-w-3xl px-4 py-10">
+        <%= yield %>
+      </main>
+    </div>
+  </body>
+</html>

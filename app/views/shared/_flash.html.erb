@@ -1,0 +1,9 @@
+<div id="flash" class="mx-auto max-w-[1800px] px-4">
+  <% flash.each do |type, message| %>
+    <%# :token carries a one-time API token rendered by its own page. %>
+    <% next if message.blank? || type.to_s == "token" %>
+    <div class="mt-3 rounded-lg border px-4 py-2.5 text-sm <%= type.to_s == "alert" ? "border-danger/40 bg-danger/10 text-danger" : "border-ok/40 bg-ok/10 text-ok" %>">
+      <%= message %>
+    </div>
+  <% end %>
+</div>

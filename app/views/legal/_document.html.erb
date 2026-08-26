@@ -1,0 +1,18 @@
+<%# Shared chrome for the two legal pages: a title, a dated subhead, and prose
+    styling applied here so the documents themselves stay readable markup. %>
+<article class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-semibold tracking-tight"><%= title %></h1>
+    <p class="mt-1 text-sm text-ink-faint">
+      For <%= Legal::SERVICE_NAME %> at <%= Legal.host %>. Last updated <%= Legal::LAST_UPDATED.strftime("%B %-d, %Y") %>.
+    </p>
+  </header>
+
+  <div class="space-y-5 text-sm leading-relaxed text-ink-muted
+              [&_h2]:mt-8 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-ink
+              [&_p]:mt-3 [&_ul]:mt-3 [&_ul]:list-disc [&_ul]:space-y-1.5 [&_ul]:pl-5
+              [&_a]:text-accent [&_a:hover]:underline
+              [&_strong]:font-medium [&_strong]:text-ink">
+    <%= yield %>
+  </div>
+</article>

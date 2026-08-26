@@ -1,0 +1,29 @@
+# Solid Queue recurring tasks, run by bin/jobs (included in bin/dev).
+#
+# The panel sweeper decides per panel whether its cached data has aged past that
+# panel class's own refresh interval, so panels with different cadences all ride
+# one minute-by-minute tick. The notifier jobs read cached panel data rather
+# than calling any third-party API, so running them every minute is cheap.
+defaults: &defaults
+  refresh_stale_panels:
+    class: RefreshStalePanelsJob
+    queue: default
+    schedule: every minute
+  notify_upcoming_meetings:
+    class: NotifyUpcomingMeetingsJob
+    queue: default
+    schedule: every minute
+  notify_countdowns:
+    class: NotifyCountdownsJob
+    queue: default
+    schedule: every minute
+  prune_notification_deliveries:
+    class: PruneNotificationDeliveriesJob
+    queue: default
+    schedule: every day at 4am
+
+development:
+  <<: *defaults
+
+production:
+  <<: *defaults

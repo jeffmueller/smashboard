@@ -1,0 +1,41 @@
+<% countdowns = data[:countdowns] || [] %>
+
+<% if countdowns.empty? %>
+  <div class="flex h-full flex-col justify-center gap-2 text-sm">
+    <p class="text-ink-muted">Nothing counting down.</p>
+    <%= link_to "Add a countdown", new_countdown_path,
+          class: "inline-flex w-fit rounded-md border border-accent/40 bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent hover:bg-accent/20" %>
+  </div>
+<% else %>
+  <ul class="space-y-2.5">
+    <% countdowns.each do |countdown| %>
+      <li class="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 <%= accent_classes(countdown[:color]) %>"
+          data-controller="countdown"
+          data-countdown-target-at-value="<%= countdown[:occurrence_at] %>">
+        <div class="min-w-0">
+          <div class="truncate text-sm font-medium text-ink"><%= countdown[:name] %></div>
+          <% if countdown[:description].present? %>
+            <div class="truncate text-xs text-ink-muted"><%= countdown[:description] %></div>
+          <% end %>
+        </div>
+
+        <div class="flex shrink-0 items-center gap-2">
+          <span data-countdown-target="remaining" class="font-mono text-sm tabular-nums">—</span>
+
+          <%# A recurring countdown returns on its next iteration; a one-off does not,
+              so the confirmation text differs. %>
+          <%= button_to dismiss_countdown_path(countdown[:id], occurrence_at: countdown[:occurrence_at]),
+                method: :post,
+                form: { data: { turbo_confirm: countdown[:returns_after_dismissal] ?
+                  "Dismiss #{countdown[:name]} for this time only? It'll come back on its next scheduled iteration." :
+                  "Dismiss #{countdown[:name]}? This one doesn't repeat, so it won't come back." } },
+                class: "rounded p-1 text-ink-faint hover:bg-raised hover:text-ink",
+                title: "Dismiss" do %>
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">Dismiss <%= countdown[:name] %></span>
+          <% end %>
+        </div>
+      </li>
+    <% end %>
+  </ul>
+<% end %>
