@@ -22,6 +22,7 @@ class CountdownsPanel < ApplicationPanel
   def entry_for(countdown, now)
     occurrence_at = countdown.next_occurrence_at(from: now)
     return nil if occurrence_at.blank?
+    return nil if waiting_for_its_day?(countdown, occurrence_at, now)
 
     {
       id: countdown.id,
@@ -36,5 +37,19 @@ class CountdownsPanel < ApplicationPanel
       dismissable: true,
       returns_after_dismissal: countdown.recurring?
     }
+  end
+
+  # A recurring countdown is a thing that happens *today*. The kids come home
+  # from school every weekday, and a tile spending this evening counting down 23
+  # hours to tomorrow's run tells today's board nothing — so it waits, and
+  # reappears at midnight when it becomes today's.
+  #
+  # One-off countdowns are the opposite: watching a concert in November approach
+  # is the entire point, so they are never held back.
+  #
+  # Display only. The countdown still exists, still notifies on its own lead
+  # time, and is still listed at /countdowns.
+  def waiting_for_its_day?(countdown, occurrence_at, now)
+    countdown.recurring? && countdown.occurs_after_today?(occurrence_at, from: now)
   end
 end

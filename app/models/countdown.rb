@@ -46,6 +46,15 @@ class Countdown < ApplicationRecord
     candidate_occurrences(from).lazy.reject { |at| dismissed.include?(occurrence_key(at)) }.first(limit)
   end
 
+  # Whether an occurrence lands on a later calendar day than `from`, judged in
+  # this countdown's own zone — the zone its schedule runs in, and so the one
+  # whose midnight decides when "tomorrow" becomes "today".
+  def occurs_after_today?(occurrence_at, from: Time.current)
+    return false if occurrence_at.blank?
+
+    occurrence_at.in_time_zone(zone).to_date > from.in_time_zone(zone).to_date
+  end
+
   def seconds_remaining(from: Time.current)
     at = next_occurrence_at(from: from)
     return nil if at.blank?
