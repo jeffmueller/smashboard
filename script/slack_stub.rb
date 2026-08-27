@@ -29,14 +29,23 @@ CONVERSATIONS = [
   { id: 'C_ENG', name: 'engineering', unread: 12, raw: 48 },
   { id: 'C_GENERAL', name: 'general', unread: 3, raw: 31 },
   { id: 'C_RANDOM', name: 'random', unread: 0, raw: 17 },
-  { id: 'C_DEPLOYS', name: 'deploys', unread: 6, raw: 6 },
-  # No unread keys at all — what Slack does for a channel when the token lacks
-  # the history scopes. Exercises the "couldn't be counted" path.
-  { id: 'C_SILENT', name: 'silent-channel', unread: nil, raw: nil }
+  { id: 'C_DEPLOYS', name: 'deploys', unread: 6, raw: 6 }
 ].freeze
 
+# Opt-in: a channel Slack answers for but returns no unread keys on, which is
+# what it does when the token lacks the history scopes. Off by default so the
+# stub's normal state is a healthy workspace rather than a warning nobody asked
+# for — set SLACK_STUB_UNCOUNTABLE=1 to exercise the "couldn't be counted" path.
+UNCOUNTABLE = { id: 'C_SILENT', name: 'silent-channel', unread: nil, raw: nil }.freeze
+
+def conversations
+  return CONVERSATIONS unless ENV['SLACK_STUB_UNCOUNTABLE'] == '1'
+
+  CONVERSATIONS + [UNCOUNTABLE]
+end
+
 def listing
-  CONVERSATIONS.map do |conversation|
+  conversations.map do |conversation|
     { id: conversation[:id], name: conversation[:name],
       is_im: conversation[:is_im] || false, is_mpim: conversation[:is_mpim] || false,
       is_channel: !(conversation[:is_im] || conversation[:is_mpim]) }.compact
@@ -44,7 +53,7 @@ def listing
 end
 
 def info_for(id)
-  conversation = CONVERSATIONS.find { |c| c[:id] == id }
+  conversation = conversations.find { |c| c[:id] == id }
   return { ok: false, error: 'channel_not_found' } if conversation.nil?
 
   { ok: true,
