@@ -56,6 +56,40 @@ RSpec.describe Countdown do
     end
   end
 
+  # A `time` column has no zone of its own, but Active Record returns it in
+  # whatever zone is ambient — and a web request runs in the user's zone while a
+  # job does not. Reading #hour off that moved the whole schedule by the UTC
+  # offset, so the notifier fired at the right moment while the board drew the
+  # countdown hours early, on the wrong day either side of midnight.
+  describe 'the schedule under different ambient time zones' do
+    it 'lands on the same moment however the reader is zoned' do
+      countdown = create(:countdown, :recurring, user: user,
+                                                 rrule: 'FREQ=DAILY',
+                                                 starts_on: Date.new(2026, 8, 1),
+                                                 occurs_at_time: Time.zone.parse('16:05'))
+      from = Time.utc(2026, 8, 27, 6, 0, 0)
+
+      occurrences = ['UTC', 'Eastern Time (US & Canada)', 'Australia/Sydney'].map do |ambient|
+        Time.use_zone(ambient) { described_class.find(countdown.id).next_occurrence_at(from: from) }
+      end
+
+      expect(occurrences.uniq.size).to eq(1)
+    end
+
+    it 'keeps the wall-clock time it was given' do
+      countdown = create(:countdown, :recurring, user: user,
+                                                 rrule: 'FREQ=DAILY',
+                                                 starts_on: Date.new(2026, 8, 1),
+                                                 occurs_at_time: Time.zone.parse('16:05'))
+
+      at = Time.use_zone('Eastern Time (US & Canada)') do
+        described_class.find(countdown.id).next_occurrence_at(from: Time.utc(2026, 8, 27, 6, 0, 0))
+      end
+
+      expect(at.in_time_zone(user.zone).strftime('%H:%M')).to eq('16:05')
+    end
+  end
+
   describe 'dismissal' do
     let(:countdown) { create(:countdown, :recurring, user: user) }
 

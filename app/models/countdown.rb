@@ -16,6 +16,9 @@ class Countdown < ApplicationRecord
   # Bounds the search when someone dismisses a long run of iterations.
   OCCURRENCE_LOOKAHEAD = 60
 
+  # Used when a recurring countdown has no time of day set.
+  DEFAULT_HOUR = 9
+
   belongs_to :user
   has_many :dismissals, class_name: 'CountdownDismissal', dependent: :destroy
 
@@ -101,10 +104,20 @@ class Countdown < ApplicationRecord
     end
   end
 
+  # `occurs_at_time` is a `time` column: a wall-clock time, with no date and no
+  # zone of its own. Active Record still hands it back as a Time, converted into
+  # whatever zone happens to be ambient — so the same row reads 16:05 in a rake
+  # task and 11:05 inside a request, which runs in the user's zone. Taking #hour
+  # from that moved the entire schedule by the UTC offset, and the two callers
+  # disagreed: the notifier (no ambient zone) fired at the right moment while the
+  # board (in-request) drew the countdown hours early.
+  #
+  # The stored wall time survives intact in the UTC representation, so the
+  # components come from there and the schedule is the same whoever asks.
   def schedule_start
     date = starts_on || created_at&.in_time_zone(zone)&.to_date || zone.today
-    time = occurs_at_time || Time.zone.parse('09:00')
-    zone.local(date.year, date.month, date.day, time.hour, time.min, 0)
+    at = occurs_at_time&.utc
+    zone.local(date.year, date.month, date.day, at&.hour || DEFAULT_HOUR, at&.min || 0, 0)
   end
 
   # Dismissals are matched to the second in UTC. Comparing Time objects

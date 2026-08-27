@@ -19,6 +19,14 @@ that will bite you.
 - `config.active_record.encryption.*` must be set in `config/application.rb` or
   an environment file. Setting it in `config/initializers/` is too late — the
   Active Record railtie has already read it.
+- A **`time` column has no zone of its own, but Active Record returns it in
+  whatever zone is ambient.** `countdowns.occurs_at_time` holding `16:05` reads
+  as `16:05` in a rake task and `11:05` inside a request, which runs in the
+  user's zone — so taking `#hour` off it moved the whole schedule by the UTC
+  offset, and the notifier (no ambient zone) and the board (in-request)
+  disagreed by hours. `Countdown#schedule_start` reads the components from
+  `.utc`, where the stored wall time survives intact. Specs pin the schedule
+  across three ambient zones.
 - `Countdown#dismissed_occurrence_keys` is memoized for the duration of one
   occurrence walk. `#dismiss!` and `#reload` clear it; anything else that
   changes dismissals must too.
