@@ -48,7 +48,15 @@
       <% end %>
     </ul>
 
-    <% if data[:incomplete] %>
+    <% if data[:uncounted].to_i.positive? %>
+      <%# Actionable, unlike the budget case: Slack only returns channel unread
+          counts to a token holding the history scopes. %>
+      <p class="mt-2 border-t border-line/60 pt-2 text-[11px] text-ink-faint">
+        <%= pluralize(data[:uncounted], "conversation") %> couldn't be counted —
+        <%= link_to "reconnect Slack", connections_path, class: "text-accent hover:underline" %>
+        to include channels.
+      </p>
+    <% elsif data[:incomplete] %>
       <p class="mt-2 border-t border-line/60 pt-2 text-[11px] text-ink-faint">
         Counted the busiest conversations; Slack has no bulk unread API.
       </p>

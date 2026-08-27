@@ -7,9 +7,9 @@ RSpec.describe SlackPanel do
   let!(:work) { create(:connection, user: user, provider: 'slack', label: 'Work') }
   let(:panel) { user.panels.find_by!(kind: 'slack') }
 
-  def counts(dms: 0, channel: 0, checked: 5, skipped: 0, top: [])
+  def counts(dms: 0, channel: 0, checked: 5, skipped: 0, uncounted: 0, top: [])
     { dm_unread: dms, channel_unread: channel, conversations_checked: checked,
-      conversations_skipped: skipped, top: top }
+      conversations_skipped: skipped, conversations_uncounted: uncounted, top: top }
   end
 
   def stub_slack(workspace: { team: 'Acme', url: 'https://acme.slack.com/' }, unread: counts)
@@ -57,6 +57,16 @@ RSpec.describe SlackPanel do
     stub_slack(unread: counts(dms: 2, channel: 3, skipped: 0))
 
     expect(panel.presenter.fetch[:incomplete]).to be(false)
+  end
+
+  # The other way a total falls short: everything was asked about, but Slack
+  # returned no unread count for some of it — a token without the history
+  # scopes, which affects every channel and no DM. The number is a floor, and
+  # saying so is the difference between "you have 2" and "you have at least 2".
+  it 'flags a count Slack would not answer for' do
+    stub_slack(unread: counts(dms: 2, channel: 0, checked: 11, skipped: 0, uncounted: 4))
+
+    expect(panel.presenter.fetch[:incomplete]).to be(true)
   end
 
   it 'passes the configured lookup budget through' do

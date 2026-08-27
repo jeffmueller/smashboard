@@ -4,8 +4,14 @@ module Integrations
   # Unread counts for one Slack workspace, using a user token.
   #
   # It has to be a *user* token (`xoxp-…`): unread is a per-person concept, and a
-  # bot token would report the bot's unreads. Scopes needed are `channels:read`,
-  # `groups:read`, `im:read` and `mpim:read`.
+  # bot token would report the bot's unreads.
+  #
+  # The `:read` scopes list conversations; the `:history` scopes are what make
+  # `conversations.info` return an unread count for **channels**. Slack returns
+  # unread for DMs on `im:read` alone, which is why a token without the history
+  # scopes looks like it works — every DM counts correctly and every channel
+  # silently reports nothing. Hence #counted_conversation distinguishing "Slack
+  # did not tell us" from "zero unread".
   #
   # Slack has no endpoint that returns unread counts in one call — the tidy one
   # the desktop client uses is undocumented, so this takes the documented route:
@@ -52,16 +58,21 @@ module Integrations
 
     def tally(checked, skipped)
       counted = checked.filter_map { |conversation| counted_conversation(conversation) }
-      direct, channels = counted.partition { |entry| entry[:direct] }
+      known, unknown = counted.partition { |entry| entry[:unread] }
+      direct, channels = known.partition { |entry| entry[:direct] }
 
       {
         dm_unread: direct.sum { |entry| entry[:unread] },
         channel_unread: channels.sum { |entry| entry[:unread] },
         conversations_checked: checked.size,
         conversations_skipped: skipped,
-        top: name_top(counted.select { |entry| entry[:unread].positive? }
-                             .sort_by { |entry| -entry[:unread] }
-                             .first(NAMED_CONVERSATIONS))
+        # Asked about, but Slack returned no unread count — almost always a
+        # token without the history scopes. Reported so the panel can say the
+        # number is short rather than presenting it as the whole truth.
+        conversations_uncounted: unknown.size,
+        top: name_top(known.select { |entry| entry[:unread].positive? }
+                           .sort_by { |entry| -entry[:unread] }
+                           .first(NAMED_CONVERSATIONS))
       }
     end
 
@@ -74,7 +85,12 @@ module Integrations
         direct: direct?(conversation),
         # The *_display count is the one Slack badges with: it leaves out joins,
         # leaves and other noise the user never thinks of as a message.
-        unread: channel['unread_count_display'].to_i,
+        #
+        # Left nil when the key is absent rather than coerced to 0. Slack omits
+        # it entirely for channels when the token lacks the history scopes, and
+        # `nil.to_i` would turn "cannot see this conversation" into "nothing
+        # unread here" — a confident zero, no error, and no way to tell.
+        unread: channel.key?('unread_count_display') ? channel['unread_count_display'].to_i : nil,
         name: channel['name'].presence,
         user_id: channel['user'].presence
       }

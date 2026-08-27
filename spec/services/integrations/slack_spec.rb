@@ -68,6 +68,40 @@ RSpec.describe Integrations::Slack do
         .to have_been_made
     end
 
+    # Slack omits the unread fields entirely for channels when the token lacks
+    # the history scopes. Coercing that to zero reported a confident "nothing
+    # unread" for every channel in the workspace, with no error anywhere.
+    describe 'a conversation Slack returns no unread count for' do
+      before do
+        stub_conversations(channel('C1', name: 'general'), channel('D1', is_im: true))
+        stub_info('C1', unread_display: nil)
+        stub_info('D1', unread_display: 4, user: 'U1')
+      end
+
+      it 'is not counted as zero unread' do
+        expect(client.unread[:conversations_uncounted]).to eq(1)
+      end
+
+      it 'does not stop the conversations Slack does answer for' do
+        result = client.unread
+
+        expect(result[:dm_unread]).to eq(4)
+        expect(result[:channel_unread]).to eq(0)
+        expect(result[:conversations_checked]).to eq(2)
+      end
+
+      it 'stays out of the named list rather than appearing as a zero' do
+        expect(client.unread[:top].pluck(:name)).not_to include('#general')
+      end
+    end
+
+    it 'reports nothing uncounted when Slack answers for everything' do
+      stub_conversations(channel('C1', name: 'general'))
+      stub_info('C1', unread_display: 0)
+
+      expect(client.unread[:conversations_uncounted]).to eq(0)
+    end
+
     # The *_display count is what Slack badges with; the raw count includes
     # joins and leaves nobody thinks of as a message.
     it 'counts the display total, not the raw one' do

@@ -109,7 +109,11 @@ class ConnectionProvider
       label: 'Slack',
       panel: 'Slack',
       oauth: :slack,
-      oauth_scopes: %w[channels:read groups:read im:read mpim:read],
+      # The :history scopes are not about reading messages — they are what makes
+      # conversations.info return an unread count for channels at all. Without
+      # them DMs count and channels silently report nothing.
+      oauth_scopes: %w[channels:read groups:read im:read mpim:read
+                       channels:history groups:history im:history mpim:history],
       summary: 'Unread message counts for one workspace, direct messages counted first.',
       guidance: 'Sign in with Slack and the user token is stored for you. ' \
                 'Add one connection per workspace. The server needs SLACK_CLIENT_ID and ' \

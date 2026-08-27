@@ -91,6 +91,13 @@ that will bite you.
 - **Slack reports failures as HTTP 200** with `{"ok": false, "error": …}`.
   `Integrations::Slack#guard_envelope` is what catches that; status-based
   handling alone reads `invalid_auth` as an empty success.
+- Slack returns `unread_count_display` from `conversations.info` for **DMs**
+  with just `im:read`, but for **channels** only when the token also holds the
+  `*:history` scopes — otherwise it omits the field entirely rather than
+  erroring. `nil.to_i` then reads as "nothing unread", so the panel showed a
+  confident zero for every channel with no error anywhere. `Integrations::Slack`
+  keeps a missing count as `nil` and reports it as `conversations_uncounted`;
+  don't coerce it.
 - Slack unread counts need a **user token** (`xoxp-`), not a bot token, and
   there is no bulk unread endpoint — the fan-out over `conversations.info` is
   budgeted on purpose. If you raise the budget, check it against that method's

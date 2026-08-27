@@ -5,8 +5,8 @@
 # Payload contract:
 #   { workspaces: [{ connection_id:, name:, url:, dm_unread:, channel_unread:,
 #                    total_unread:, conversations_checked:, conversations_skipped:,
-#                    top: [{ name:, direct:, unread: }] }],
-#     total_unread:, dm_unread:, incomplete:, partial: }
+#                    conversations_uncounted:, top: [{ name:, direct:, unread: }] }],
+#     total_unread:, dm_unread:, incomplete:, uncounted:, partial: }
 class SlackPanel < ApplicationPanel
   class << self
     def title = 'Slack'
@@ -40,11 +40,22 @@ class SlackPanel < ApplicationPanel
       workspaces: counted.sort_by { |workspace| -workspace[:total_unread] },
       total_unread: counted.sum { |workspace| workspace[:total_unread] },
       dm_unread: counted.sum { |workspace| workspace[:dm_unread].to_i },
-      # Slack has no bulk unread endpoint, so a large workspace may not be fully
-      # counted. Say so rather than present a short number as the whole truth.
-      incomplete: counted.any? { |workspace| workspace[:conversations_skipped].to_i.positive? },
+      # The total can fall short two ways, and both mean the same thing to a
+      # reader: it is a floor, not the whole truth. Either the fan-out budget ran
+      # out on a large workspace, or Slack returned no unread count for some
+      # conversations — which is what a token missing the history scopes looks
+      # like, since it affects every channel and no DM.
+      incomplete: counted.any? { |workspace| short_count?(workspace) },
+      # Split out from `incomplete` because the two have different answers: a
+      # budget that ran out is nothing the reader can act on, whereas Slack
+      # refusing to answer is fixed by reconnecting for the history scopes.
+      uncounted: counted.sum { |workspace| workspace[:conversations_uncounted].to_i },
       partial: partial
     }
+  end
+
+  def short_count?(workspace)
+    workspace[:conversations_skipped].to_i.positive? || workspace[:conversations_uncounted].to_i.positive?
   end
 
   def total_for(workspace)

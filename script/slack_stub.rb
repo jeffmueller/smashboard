@@ -29,7 +29,10 @@ CONVERSATIONS = [
   { id: 'C_ENG', name: 'engineering', unread: 12, raw: 48 },
   { id: 'C_GENERAL', name: 'general', unread: 3, raw: 31 },
   { id: 'C_RANDOM', name: 'random', unread: 0, raw: 17 },
-  { id: 'C_DEPLOYS', name: 'deploys', unread: 6, raw: 6 }
+  { id: 'C_DEPLOYS', name: 'deploys', unread: 6, raw: 6 },
+  # No unread keys at all — what Slack does for a channel when the token lacks
+  # the history scopes. Exercises the "couldn't be counted" path.
+  { id: 'C_SILENT', name: 'silent-channel', unread: nil, raw: nil }
 ].freeze
 
 def listing

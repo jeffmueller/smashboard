@@ -259,7 +259,9 @@ minutes and needs no review or submission.
 2. **OAuth & Permissions → Redirect URLs** → add
    `https://your-host/oauth/slack/callback`.
 3. Same page, **User Token Scopes** — *not* Bot Token Scopes — add
-   `channels:read`, `groups:read`, `im:read`, `mpim:read`.
+   `channels:read`, `groups:read`, `im:read`, `mpim:read`, plus
+   `channels:history`, `groups:history`, `im:history`, `mpim:history` — the
+   history scopes are what make Slack return an unread count for channels.
 4. **Basic Information → App Credentials** → put the client ID and secret in
    `SLACK_CLIENT_ID` and `SLACK_CLIENT_SECRET`.
 
@@ -820,7 +822,15 @@ Architecture above, and `deployment/reporter/`.
 
 Unread counts per workspace, one connection each. It must be a **user token**
 (`xoxp-…`) — unread is a per-person concept, and a bot token would report the
-bot's unreads. Scopes: `channels:read`, `groups:read`, `im:read`, `mpim:read`.
+bot's unreads. Scopes: `channels:read`, `groups:read`, `im:read`, `mpim:read`,
+`channels:history`, `groups:history`, `im:history`, `mpim:history`.
+
+The history scopes are not about reading messages — they are what makes
+`conversations.info` return an unread count for a **channel** at all. Slack
+returns unread for DMs on `im:read` alone, so a token without them looks like it
+works: every DM counts, and every channel silently reports nothing. The panel
+therefore treats a missing count as *uncounted* rather than as zero, and says so
+rather than presenting a short number as the whole truth.
 
 **Slack reports failures as HTTP 200 with `{"ok": false, "error": …}`.** Checking
 the status alone reads a rejected token as a successful, empty response, so the
