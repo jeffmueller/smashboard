@@ -31,11 +31,23 @@ Rails.application.configure do
   # every boot and every rake task.
   config.active_storage.variant_processor = :disabled
 
-  # nginx terminates TLS and forwards over the loopback, so Rails only ever sees
-  # plain HTTP on the socket. Without assume_ssl it would decide the connection
-  # is insecure, and force_ssl would redirect to https forever.
-  config.assume_ssl = true
-  config.force_ssl = true
+  # Deployments differ on who terminates TLS, and getting this wrong is silent
+  # rather than loud, so it is configuration.
+  #
+  #   default (unset)          — a reverse proxy in front terminating TLS and
+  #                              forwarding plain HTTP over the loopback, which
+  #                              is the nginx/Raspberry Pi setup in the README.
+  #                              assume_ssl stops Rails calling that connection
+  #                              insecure and redirecting to https forever.
+  #   SMASHBOARD_FORCE_SSL=false — served over plain HTTP, e.g. a NAS on the LAN
+  #                              at http://nas.local:3000 with nothing in front.
+  #
+  # Leaving both on for a plain-HTTP host does not merely redirect: force_ssl
+  # also marks the session cookie `secure`, so the browser never sends it back
+  # and signing in appears to succeed and then bounces straight to the login
+  # page again. Turn them off together or not at all.
+  config.assume_ssl = ENV.fetch('SMASHBOARD_FORCE_SSL', 'true') != 'false'
+  config.force_ssl = ENV.fetch('SMASHBOARD_FORCE_SSL', 'true') != 'false'
 
   # The health check has to answer over plain HTTP: it's what the reverse proxy
   # and any uptime monitor hit, and a 301 is not a health signal.

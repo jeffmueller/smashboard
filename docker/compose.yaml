@@ -1,0 +1,78 @@
+# smashboard, self-hosted.
+#
+#   1. rm -f .env && docker run --rm ghcr.io/jeffmueller/smashboard:latest \
+#        bin/rails smashboard:env > .env
+#   2. edit .env — at minimum set APP_HOST to the name you'll reach this on
+#   3. docker compose up -d
+#
+# Then open http://<APP_HOST>:3000 and create the first account.
+#
+# Everything is pinned to one image tag so web and jobs can never end up on
+# different versions of the code.
+
+name: smashboard
+
+x-app: &app
+  image: ghcr.io/jeffmueller/smashboard:${SMASHBOARD_TAG:-latest}
+  restart: unless-stopped
+  env_file: .env
+  environment:
+    # The app's four databases all live on this one server.
+    SMASHBOARD_DATABASE_HOST: postgres
+    SMASHBOARD_DATABASE_PORT: "5432"
+    SMASHBOARD_DATABASE_USER: smashboard
+  volumes:
+    # Active Storage writes here. A named volume rather than a bind mount so it
+    # survives `docker compose down` and doesn't inherit host ownership.
+    - storage:/rails/storage
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: smashboard
+      POSTGRES_PASSWORD: ${SMASHBOARD_DATABASE_PASSWORD:?set SMASHBOARD_DATABASE_PASSWORD in .env}
+      # Only the primary database is created here; Rails creates the cache,
+      # queue and cable databases itself on first boot.
+      POSTGRES_DB: smashboard_production
+    volumes:
+      - postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smashboard"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  web:
+    <<: *app
+    ports:
+      - "${SMASHBOARD_PORT:-3000}:80"
+    # The entrypoint runs db:prepare before booting the server, so this is what
+    # creates and migrates all four databases.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/up > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  jobs:
+    <<: *app
+    # Recurring sweeps and every panel refresh. Split from web so an integration
+    # fetch that wedges can't take the web server down with it.
+    command: ["bin/jobs"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      # Waits for web because web is what migrates. Starting against a database
+      # without Solid Queue's tables is just a crash loop.
+      web:
+        condition: service_healthy
+
+volumes:
+  postgres:
+  storage:

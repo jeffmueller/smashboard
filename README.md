@@ -17,6 +17,10 @@ See [Developing without credentials](#developing-without-credentials).*
 
 ## Getting started
 
+*Just want to run it?* See [Running it with Docker](#running-it-with-docker) —
+one compose file, no Ruby needed. What follows is the setup for working on the
+code.
+
 You need **Ruby 3.4.7** and **Docker**. The Ruby version is pinned in
 `mise.toml`, so [mise](https://mise.jdx.dev) will install it for you
 (`mise install`); rbenv, asdf or a system Ruby of the same version work too.
@@ -1000,6 +1004,62 @@ failure modes are otherwise invisible.
 
 `/api_tokens` mints bearer tokens for `/api/v1`. The plaintext is shown exactly
 once, on the page right after creation, and only the digest is stored.
+
+## Running it with Docker
+
+The easiest way to self-host — a NAS, a home server, anything that runs Docker.
+Images are published for **linux/amd64 and linux/arm64**, so an ARM NAS pulls
+rather than spending an hour compiling native gems.
+
+```bash
+mkdir smashboard && cd smashboard
+curl -O https://raw.githubusercontent.com/jeffmueller/smashboard/main/docker/compose.yaml
+
+# Generate every key the app needs, in one file
+docker run --rm ghcr.io/jeffmueller/smashboard:latest bin/rails smashboard:env > .env
+
+# Set APP_HOST to the name you'll actually reach it on, then:
+docker compose up -d
+```
+
+Open `http://<APP_HOST>:3000` and create the first account. There is no admin
+user and no invite step — the first person to sign up is just a user, and so is
+everyone after them.
+
+**Edit `.env` before starting.** Two entries matter more than the rest:
+
+- **`APP_HOST`** is the name you'll browse to. Requests arriving under a
+  different `Host` header are refused — that's DNS-rebinding protection, not a
+  bug — so `nas.local` and `192.168.1.50` are not interchangeable. Set it to
+  whichever you'll actually type.
+- **`SMASHBOARD_FORCE_SSL`** decides who is terminating TLS. Left as `false`,
+  the app serves plain HTTP, which is what you want on a LAN with nothing in
+  front of it. Delete the line if you're putting a reverse proxy in front that
+  terminates TLS. Getting this wrong fails *quietly*: with SSL enforced over
+  plain HTTP the session cookie is marked `secure`, the browser never sends it
+  back, and signing in appears to work and then returns you to the login page.
+
+**Keep the generated `.env`.** Those keys encrypt every credential you store for
+a connected account. Rotating them signs everyone out and makes what's already
+stored undecryptable — the data is still there, but nothing can read it.
+
+**Two containers, not one.** `web` serves the app; `jobs` runs the Solid Queue
+supervisor that does the recurring sweeps and every panel refresh. They're split
+so an integration fetch that wedges can't take the web server down with it, and
+both are pinned to the same image tag so they can never drift apart. `web` is
+what migrates on boot, which is why `jobs` waits for it to become healthy.
+
+Postgres comes up in the stack with a named volume. To use a database you
+already run, point `SMASHBOARD_DATABASE_HOST` (and `_PORT`, `_USER`,
+`_PASSWORD`) at it and delete the `postgres` service.
+
+To update: `docker compose pull && docker compose up -d`. Migrations run on
+boot. `:latest` moves only on a tagged release rather than on every commit to
+`main`; pin `SMASHBOARD_TAG` in `.env` if you'd rather choose explicitly.
+
+To build the image yourself instead of pulling — a fork, or an architecture
+that isn't published — `docker build -t smashboard .` and point the compose
+file's `image:` at it.
 
 ## Deployment
 

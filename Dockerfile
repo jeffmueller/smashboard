@@ -1,11 +1,18 @@
 # syntax=docker/dockerfile:1
 # check=error=true
 
-# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t smashboard .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name smashboard smashboard
-
-# For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
+# Production image. For the self-hosting stack that uses it — Postgres, the web
+# server and the job worker — see docker/compose.yaml.
+#
+# Built and published for linux/amd64 and linux/arm64 by
+# .github/workflows/release.yml, so a NAS pulls rather than compiles. To build
+# it yourself:
+#
+#   docker build -t smashboard .
+#
+# Configuration is entirely through the environment; `rails smashboard:env`
+# prints a complete starting point. This image is not for development — see the
+# README for that.
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=3.4.7

@@ -7,8 +7,11 @@
 # Ignore bundler config.
 /.bundle
 
-# Ignore all environment files.
-/.env*
+# Ignore all environment files. Not anchored to the root — the self-hosting
+# stack keeps its own docker/.env, and copying that into a layer would bake
+# somebody's encryption keys into the image.
+.env
+.env.*
 
 # Ignore all default key files.
 /config/master.key
