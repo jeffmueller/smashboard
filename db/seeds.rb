@@ -22,6 +22,11 @@ user.save!
 
 Dashboards::InstallDefaults.new(user).call
 
+# `occurs_at_time` is a `time` column that Active Record stores as an instant, so
+# the zone in force when it is written is the zone it means. The app always
+# writes it inside a request, in the user's zone; seeds run in a rake task, where
+# the ambient zone is UTC — so say the zone explicitly or 15:10 lands as 11:10
+# on the board.
 if user.countdowns.none?
   user.countdowns.create!(
     name: 'Kid one home from school',
@@ -29,7 +34,7 @@ if user.countdowns.none?
     color: 'emerald',
     rrule: 'FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR',
     starts_on: Date.current,
-    occurs_at_time: Time.zone.parse('15:10')
+    occurs_at_time: user.zone.parse('15:10')
   )
 
   user.countdowns.create!(
@@ -38,7 +43,7 @@ if user.countdowns.none?
     color: 'sky',
     rrule: 'FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR',
     starts_on: Date.current,
-    occurs_at_time: Time.zone.parse('16:05')
+    occurs_at_time: user.zone.parse('16:05')
   )
 
   user.countdowns.create!(

@@ -39,7 +39,7 @@ RSpec.describe Countdown do
     end
 
     it 'lands on the configured time of day in the user zone' do
-      countdown = create(:countdown, :recurring, user: user, occurs_at_time: Time.zone.parse('15:10'))
+      countdown = create(:countdown, :recurring, user: user, occurs_at_time: user.zone.parse('15:10'))
 
       occurrence = countdown.next_occurrence_at.in_time_zone(user.zone)
 
@@ -56,18 +56,32 @@ RSpec.describe Countdown do
     end
   end
 
-  # A `time` column has no zone of its own, but Active Record returns it in
-  # whatever zone is ambient — and a web request runs in the user's zone while a
-  # job does not. Reading #hour off that moved the whole schedule by the UTC
-  # offset, so the notifier fired at the right moment while the board drew the
-  # countdown hours early, on the wrong day either side of midnight.
-  describe 'the schedule under different ambient time zones' do
-    it 'lands on the same moment however the reader is zoned' do
-      countdown = create(:countdown, :recurring, user: user,
-                                                 rrule: 'FREQ=DAILY',
-                                                 starts_on: Date.new(2026, 8, 1),
-                                                 occurs_at_time: Time.zone.parse('16:05'))
-      from = Time.utc(2026, 8, 27, 6, 0, 0)
+  # `occurs_at_time` is a `time` column that Active Record stores as an instant:
+  # the form runs inside the user's zone, so 2:20pm is written as 19:20 UTC.
+  # Reading it back in the ambient zone made a request and a job disagree by the
+  # offset; reading it in UTC shifted every countdown by the offset instead. It
+  # has to be read in the countdown's own zone, which is where the schedule is
+  # built.
+  describe 'the time of day a recurring countdown is scheduled for' do
+    # Exactly how the form writes it: inside a request, in the user's zone.
+    def as_typed_in_the_form(time)
+      Time.use_zone(user.zone) do
+        create(:countdown, user: user, target_at: nil, rrule: 'FREQ=DAILY',
+                           starts_on: Date.new(2026, 8, 1), occurs_at_time: time)
+      end
+    end
+
+    it 'schedules for the time the user actually typed' do
+      countdown = as_typed_in_the_form('14:20')
+
+      at = countdown.next_occurrence_at(from: Time.utc(2026, 8, 28, 6, 0, 0))
+
+      expect(at.in_time_zone(user.zone).strftime('%H:%M')).to eq('14:20')
+    end
+
+    it 'reads the same whoever is asking' do
+      countdown = as_typed_in_the_form('14:20')
+      from = Time.utc(2026, 8, 28, 6, 0, 0)
 
       occurrences = ['UTC', 'Eastern Time (US & Canada)', 'Australia/Sydney'].map do |ambient|
         Time.use_zone(ambient) { described_class.find(countdown.id).next_occurrence_at(from: from) }
@@ -76,17 +90,18 @@ RSpec.describe Countdown do
       expect(occurrences.uniq.size).to eq(1)
     end
 
-    it 'keeps the wall-clock time it was given' do
-      countdown = create(:countdown, :recurring, user: user,
-                                                 rrule: 'FREQ=DAILY',
-                                                 starts_on: Date.new(2026, 8, 1),
-                                                 occurs_at_time: Time.zone.parse('16:05'))
+    # The board renders in a request and the notifier runs in a job. They read
+    # the same row and must land on the same instant.
+    it 'agrees between a request and a job' do
+      countdown = as_typed_in_the_form('14:20')
+      from = Time.utc(2026, 8, 28, 6, 0, 0)
 
-      at = Time.use_zone('Eastern Time (US & Canada)') do
-        described_class.find(countdown.id).next_occurrence_at(from: Time.utc(2026, 8, 27, 6, 0, 0))
+      in_a_job = described_class.find(countdown.id).next_occurrence_at(from: from)
+      in_a_request = Time.use_zone(user.zone) do
+        described_class.find(countdown.id).next_occurrence_at(from: from)
       end
 
-      expect(at.in_time_zone(user.zone).strftime('%H:%M')).to eq('16:05')
+      expect(in_a_request).to eq(in_a_job)
     end
   end
 

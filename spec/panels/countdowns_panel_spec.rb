@@ -48,7 +48,7 @@ RSpec.describe CountdownsPanel do
     def daily_at_eight(**attrs)
       create(:countdown, user: user, name: 'School run', target_at: nil,
                          rrule: 'FREQ=DAILY', starts_on: Date.new(2026, 8, 1),
-                         occurs_at_time: Time.zone.parse('08:00'), **attrs)
+                         occurs_at_time: user.zone.parse('08:00'), **attrs)
     end
 
     # Every clock reading below is in the *user's* zone, because that is the zone
@@ -95,7 +95,7 @@ RSpec.describe CountdownsPanel do
     it "judges the day in the countdown's own zone, not the server's" do
       create(:countdown, user: user, name: 'Pacific standup', target_at: nil,
                          rrule: 'FREQ=DAILY', starts_on: Date.new(2026, 8, 1),
-                         occurs_at_time: Time.zone.parse('09:00'),
+                         occurs_at_time: ActiveSupport::TimeZone['Pacific Time (US & Canada)'].parse('09:00'),
                          time_zone: 'Pacific Time (US & Canada)')
 
       expect(names(Time.utc(2026, 8, 27, 4, 0, 0))).to be_empty

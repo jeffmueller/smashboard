@@ -19,14 +19,18 @@ that will bite you.
 - `config.active_record.encryption.*` must be set in `config/application.rb` or
   an environment file. Setting it in `config/initializers/` is too late — the
   Active Record railtie has already read it.
-- A **`time` column has no zone of its own, but Active Record returns it in
-  whatever zone is ambient.** `countdowns.occurs_at_time` holding `16:05` reads
-  as `16:05` in a rake task and `11:05` inside a request, which runs in the
-  user's zone — so taking `#hour` off it moved the whole schedule by the UTC
-  offset, and the notifier (no ambient zone) and the board (in-request)
-  disagreed by hours. `Countdown#schedule_start` reads the components from
-  `.utc`, where the stored wall time survives intact. Specs pin the schedule
-  across three ambient zones.
+- **A `time` column is stored as an instant, so the zone in force when it is
+  written is the zone it means.** `countdowns.occurs_at_time` is written inside
+  a request, in the user's zone, so 2:20pm goes to the database as `19:20` for
+  an Eastern user. Two ways to get this wrong, and this codebase has had both:
+  reading it in the *ambient* zone makes a request (user's zone, correct) and a
+  job (no zone, five hours out) disagree; reading it in *UTC* is consistently
+  wrong instead, shifting every countdown by the offset. It has to be read in
+  the countdown's **own** zone — `occurs_at_time.in_time_zone(zone)` — which is
+  the zone `schedule_start` builds in.
+  Anything writing one outside a request has to say the zone too, or it means
+  something else: `db/seeds.rb` and the `:recurring` factory both use
+  `user.zone.parse(...)` for exactly this reason.
 - `Countdown#dismissed_occurrence_keys` is memoized for the duration of one
   occurrence walk. `#dismiss!` and `#reload` clear it; anything else that
   changes dismissals must too.

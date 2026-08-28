@@ -104,19 +104,19 @@ class Countdown < ApplicationRecord
     end
   end
 
-  # `occurs_at_time` is a `time` column: a wall-clock time, with no date and no
-  # zone of its own. Active Record still hands it back as a Time, converted into
-  # whatever zone happens to be ambient — so the same row reads 16:05 in a rake
-  # task and 11:05 inside a request, which runs in the user's zone. Taking #hour
-  # from that moved the entire schedule by the UTC offset, and the two callers
-  # disagreed: the notifier (no ambient zone) fired at the right moment while the
-  # board (in-request) drew the countdown hours early.
+  # `occurs_at_time` is a `time` column, and Active Record stores it as an
+  # instant: the form runs inside the user's zone, so 2:20pm is written as
+  # 19:20 UTC. Reading it back therefore has to name a zone, and the only right
+  # one is this countdown's own — the same zone the schedule is built in.
   #
-  # The stored wall time survives intact in the UTC representation, so the
-  # components come from there and the schedule is the same whoever asks.
+  # Reading it in whatever zone happens to be ambient is what the two callers
+  # used to do, and they disagreed: a request runs in the user's zone and got
+  # 14:20, while the notifier has no ambient zone and got 19:20. Reading it in
+  # UTC is wrong in the other direction — it gives every countdown the offset as
+  # a shift, which is the +5 hours this replaces.
   def schedule_start
     date = starts_on || created_at&.in_time_zone(zone)&.to_date || zone.today
-    at = occurs_at_time&.utc
+    at = occurs_at_time&.in_time_zone(zone)
     zone.local(date.year, date.month, date.day, at&.hour || DEFAULT_HOUR, at&.min || 0, 0)
   end
 
