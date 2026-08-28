@@ -12,7 +12,6 @@ module Dashboards
   # does mean it reappears here.)
   class InstallDefaults
     LAYOUT = %w[
-      clock
       countdowns
       calendar
       todos

@@ -29,14 +29,20 @@
   <body class="h-full bg-canvas text-ink antialiased">
     <div class="min-h-full">
       <header class="sticky top-0 z-20 border-b border-line/60 bg-canvas/80 backdrop-blur">
-        <div class="mx-auto flex max-w-[1800px] items-center justify-between gap-4 px-4 py-3">
-          <%= link_to root_path, class: "flex items-center gap-2 font-semibold tracking-tight" do %>
+        <%# Three columns rather than justify-between: the clock has to be centred
+            on the bar itself, and with flex it would only look centred while the
+            brand and the nav happened to be the same width. %>
+        <div class="mx-auto grid max-w-[1800px] grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 py-3">
+          <%= link_to root_path, class: "flex items-center gap-2 justify-self-start font-semibold tracking-tight" do %>
             <span class="inline-block h-2.5 w-2.5 rounded-full bg-ok shadow-[0_0_12px] shadow-ok/60"></span>
             <span class="text-lg">smashboard</span>
           <% end %>
 
           <% if user_signed_in? %>
-            <nav><%= render "shared/nav" %></nav>
+            <%= render "shared/clock" %>
+            <nav class="justify-self-end"><%= render "shared/nav" %></nav>
+          <% else %>
+            <span></span><span></span>
           <% end %>
         </div>
       </header>

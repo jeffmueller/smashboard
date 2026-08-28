@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe 'Panel layout' do
   let(:user) { create(:user) }
-  let(:panel) { user.panels.find_by!(kind: 'clock') }
+  let(:panel) { user.panels.find_by!(kind: 'countdowns') }
 
   before { sign_in user }
 
@@ -129,7 +129,7 @@ RSpec.describe 'Panel layout' do
 
       get '/api/v1/dashboard', headers: api_headers_for(user)
 
-      expect(response.parsed_body['panels'].pluck('kind')).not_to include('clock')
+      expect(response.parsed_body['panels'].pluck('kind')).not_to include('countdowns')
     end
   end
 

@@ -49,6 +49,6 @@ RSpec.describe Dashboards::InstallDefaults do
     user = create(:user)
 
     expect(user.panels.find_by(kind: 'todos').col_span).to eq(TodosPanel.default_col_span)
-    expect(user.panels.find_by(kind: 'clock').col_span).to eq(ClockPanel.default_col_span)
+    expect(user.panels.find_by(kind: 'countdowns').col_span).to eq(CountdownsPanel.default_col_span)
   end
 end

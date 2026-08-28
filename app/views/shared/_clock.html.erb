@@ -1,0 +1,17 @@
+<%# The time and date for the whole app, in the user's zone rather than the
+    device's — a phone in another timezone still shows the board's time.
+    Rendered server-side first so there is no blank frame, then ticked in the
+    browser by clock_controller so the server never re-renders once a second. %>
+<% now = Time.current.in_time_zone(current_user.zone) %>
+<div data-controller="clock"
+     data-clock-time-zone-value="<%= current_user.zone.name %>"
+     class="flex items-baseline justify-self-center gap-3">
+  <span data-clock-target="time" class="font-mono text-base font-semibold tabular-nums tracking-tight text-ink">
+    <%= now.strftime("%-I:%M %p") %>
+  </span>
+  <%# Dropped on narrow screens, where the bar has no room for it and the time
+      is the part worth keeping. %>
+  <span data-clock-target="date" class="hidden text-sm text-ink-muted md:inline">
+    <%= now.strftime("%A, %B %-d, %Y") %>
+  </span>
+</div>

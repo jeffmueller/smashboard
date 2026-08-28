@@ -4,7 +4,7 @@
 #
 # Panels come in two flavours:
 #
-#   local  — reads this app's own database (clock, countdowns, todos). Cheap, so
+#   local  — reads this app's own database (countdowns, todos, habits). Cheap, so
 #            it's computed fresh on every render and never cached.
 #   remote — calls a third-party API (email, GitHub, Slack, news, weather).
 #            RefreshPanelJob fetches out of band and writes the result to

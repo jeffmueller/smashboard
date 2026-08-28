@@ -83,6 +83,12 @@ button), on a click outside, and before Turbo caches the page, so going back
 never paints a menu hanging open. The item for the page you're on is marked
 `aria-current="page"`.
 
+The time and date sit centred in the same bar, on every page rather than in a
+tile on the board. They are rendered server-side first so there is no blank
+frame, then ticked in the browser — the server never re-renders once a second.
+The zone is the user's own, not the device's, so a phone in another timezone
+still shows the board's time.
+
 ## Arranging the board
 
 Each panel's header carries a menu with four named widths and a hide action.
@@ -383,7 +389,7 @@ Panels come in two flavours, and the distinction drives everything else:
 
 | | Local | Remote |
 |---|---|---|
-| Examples | clock, countdowns, todos, habits, bookmarks | email, github, slack, news, weather |
+| Examples | countdowns, todos, habits, bookmarks | email, github, slack, news, weather |
 | Data source | this app's database | a third-party API |
 | Implements | `#build` | `#fetch` |
 | When it runs | every render | `RefreshPanelJob`, out of band |

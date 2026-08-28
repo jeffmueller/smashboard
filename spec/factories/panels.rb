@@ -3,7 +3,7 @@
 FactoryBot.define do
   factory :panel do
     user
-    kind { 'clock' }
+    kind { 'countdowns' }
     position { 0 }
   end
 end

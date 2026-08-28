@@ -28,7 +28,7 @@ RSpec.describe 'Api::V1::Dashboard' do
 
     expect(response).to have_http_status(:ok)
     body = response.parsed_body
-    expect(body['panels'].pluck('kind')).to include('clock', 'countdowns', 'todos')
+    expect(body['panels'].pluck('kind')).to include('countdowns', 'todos', 'habits')
 
     countdowns = body['panels'].find { |p| p['kind'] == 'countdowns' }
     expect(countdowns.dig('data', 'countdowns').first['name']).to eq('Concert')

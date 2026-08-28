@@ -11,7 +11,7 @@ RSpec.describe Positioned do
 
   describe '.apply_order' do
     it 'rewrites positions to match the given order' do
-      a = create(:panel, user: user, kind: 'clock', position: 0)
+      a = create(:panel, user: user, kind: 'countdowns', position: 0)
       b = create(:panel, user: user, kind: 'todos', position: 1)
       c = create(:panel, user: user, kind: 'news', position: 2)
 
@@ -23,8 +23,8 @@ RSpec.describe Positioned do
     # The relation is the authorization boundary: an id from outside it is
     # dropped rather than moved, however it got into the request.
     it 'ignores records outside the relation it was called on' do
-      mine = create(:panel, user: user, kind: 'clock', position: 0)
-      theirs = create(:panel, user: create(:user), kind: 'clock', position: 0)
+      mine = create(:panel, user: user, kind: 'countdowns', position: 0)
+      theirs = create(:panel, user: create(:user), kind: 'countdowns', position: 0)
 
       user.panels.apply_order([theirs.id, mine.id])
 
@@ -48,7 +48,7 @@ RSpec.describe Positioned do
 
   describe '.next_position' do
     it 'lands a new record at the end of the list' do
-      create(:panel, user: user, kind: 'clock', position: 4)
+      create(:panel, user: user, kind: 'countdowns', position: 4)
 
       expect(user.panels.next_position).to eq(5)
     end

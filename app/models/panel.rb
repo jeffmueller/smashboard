@@ -6,7 +6,6 @@ class Panel < ApplicationRecord
   include Positioned
 
   KINDS = %w[
-    clock
     countdowns
     todos
     habits

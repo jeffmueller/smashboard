@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Development seed: one signed-in-able user with a dashboard that demonstrates
-# the countdown, todo, habit and clock panels working end to end.
+# the countdown, todo and habit panels working end to end.
 #
 #   bin/rails db:seed
 #
