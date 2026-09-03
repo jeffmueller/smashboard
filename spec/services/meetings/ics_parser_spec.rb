@@ -4,7 +4,8 @@ require 'rails_helper'
 
 RSpec.describe Meetings::IcsParser do
   let(:ics) { Rails.root.join('spec/fixtures/calendars/today.ics').read }
-  let(:events) { described_class.parse(ics, calendar_name: 'Work', user_email: 'alex@example.com') }
+  let(:zone) { ActiveSupport::TimeZone['America/New_York'] }
+  let(:events) { described_class.parse(ics, calendar_name: 'Work', zone: zone, user_email: 'alex@example.com') }
 
   def event(title)
     events.find { |e| e[:title] == title }
@@ -19,7 +20,7 @@ RSpec.describe Meetings::IcsParser do
   end
 
   it 'keeps a declined event when it belongs to somebody else' do
-    others = described_class.parse(ics, calendar_name: 'Work', user_email: 'someone@example.com')
+    others = described_class.parse(ics, calendar_name: 'Work', zone: zone, user_email: 'someone@example.com')
 
     expect(others.pluck(:title)).to include('Optional Sync')
   end
@@ -34,6 +35,20 @@ RSpec.describe Meetings::IcsParser do
 
     expect(holiday[:all_day]).to be(true)
     expect(holiday[:ends_at] - holiday[:starts_at]).to eq(1.day)
+  end
+
+  # A VALUE=DATE start carries no time and no zone. Read in UTC, the 25th starts
+  # at 8pm on the 24th for an Eastern reader — a whole day early.
+  it 'starts an all-day event at midnight in the zone it was given' do
+    expect(event('Company Holiday')[:starts_at]).to eq(Time.utc(2026, 8, 25, 4))
+  end
+
+  it 'reads the same all-day date differently in a different zone' do
+    berlin = described_class.parse(ics, calendar_name: 'Work',
+                                        zone: ActiveSupport::TimeZone['Europe/Berlin'])
+    holiday = berlin.find { |e| e[:title] == 'Company Holiday' }
+
+    expect(holiday[:starts_at]).to eq(Time.utc(2026, 8, 24, 22))
   end
 
   it 'pulls a Zoom link out of the location' do
@@ -67,6 +82,6 @@ RSpec.describe Meetings::IcsParser do
   end
 
   it 'returns an empty list rather than raising on junk input' do
-    expect(described_class.parse('this is not a calendar', calendar_name: 'Work')).to eq([])
+    expect(described_class.parse('this is not a calendar', calendar_name: 'Work', zone: zone)).to eq([])
   end
 end

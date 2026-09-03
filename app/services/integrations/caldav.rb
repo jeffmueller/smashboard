@@ -161,7 +161,7 @@ module Integrations
       end
 
       events = calendar_data(doc).flat_map do |ics|
-        Meetings::IcsParser.parse(ics, calendar_name: calendar[:name], user_email: username)
+        Meetings::IcsParser.parse(ics, calendar_name: calendar[:name], zone: zone, user_email: username)
       end
 
       expanded ? events : Meetings::RecurrenceExpander.expand(events, from: from, to: to)

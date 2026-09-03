@@ -27,9 +27,12 @@ module Meetings
       new(...).call
     end
 
-    def initialize(ics, calendar_name:, user_email: nil)
+    # `zone` is required rather than defaulted: a VALUE=DATE start is floating,
+    # and reading it in the wrong zone silently moves the event a day.
+    def initialize(ics, calendar_name:, zone:, user_email: nil)
       @ics = ics
       @calendar_name = calendar_name
+      @zone = zone
       @user_email = user_email.to_s.downcase.presence
     end
 
@@ -86,7 +89,9 @@ module Meetings
       return nil if value.blank?
 
       case value
-      when Icalendar::Values::Date then value.value.in_time_zone('UTC')
+      # A DATE has no time and no zone. Midnight *there* is the instant it
+      # means; midnight UTC is the evening before for anyone west of it.
+      when Icalendar::Values::Date then value.value.in_time_zone(@zone).utc
       else value.to_time.utc
       end
     rescue StandardError

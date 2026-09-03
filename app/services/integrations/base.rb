@@ -39,6 +39,14 @@ module Integrations
       connection.settings.fetch(key.to_s, default)
     end
 
+    # The zone a *floating* value from this account means. A calendar date with
+    # no time and no zone — an all-day event — is not an instant until somebody
+    # says where it is being read, and the user's zone is the one the dashboard
+    # is rendered in.
+    def zone
+      connection.user.zone
+    end
+
     def http(base_url, &)
       Faraday.new(url: base_url) do |f|
         f.request :json

@@ -31,6 +31,20 @@ that will bite you.
   Anything writing one outside a request has to say the zone too, or it means
   something else: `db/seeds.rb` and the `:recurring` factory both use
   `user.zone.parse(...)` for exactly this reason.
+- **An all-day calendar date is floating too, and it is not UTC.** A CalDAV
+  `DTSTART;VALUE=DATE:20260826` or a Google `start: {date: ...}` says "the 26th",
+  not an instant. Both parsers used to pin it to midnight *UTC*, which for an
+  Eastern user is 8pm on the 25th — so tomorrow's all-day event sat on today's
+  dashboard. They now resolve it in the connection's user zone
+  (`Integrations::Base#zone`), and `Meetings::IcsParser` takes `zone:` as a
+  required keyword so no call site can quietly skip the decision.
+- **`CalendarPanel` filters to its own window; the servers' filtering is not
+  enough.** RFC 4791 has a CalDAV server match a floating all-day date against
+  the requested range *in UTC*, so a query for an Eastern user's Tuesday legally
+  comes back with Wednesday's all-day events. Nothing downstream drops them —
+  an all-day event is never "finished" — so `#within?` does. Its zero-duration
+  branch is load-bearing: an event with no DTEND is a point in time, and a plain
+  overlap test would drop one landing exactly on midnight.
 - `Countdown#dismissed_occurrence_keys` is memoized for the duration of one
   occurrence walk. `#dismiss!` and `#reload` clear it; anything else that
   changes dismissals must too.

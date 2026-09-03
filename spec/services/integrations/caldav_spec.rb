@@ -238,6 +238,28 @@ RSpec.describe Integrations::Caldav do
       expect(event[:video_provider]).to eq('Zoom')
     end
 
+    # The parser cannot resolve a VALUE=DATE without being told where it is
+    # being read; this is the wiring that hands it the connection's user zone.
+    it 'resolves an all-day date in the user zone' do
+      holiday = <<~ICS
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        BEGIN:VEVENT
+        UID:holiday-1
+        SUMMARY:Company Holiday
+        DTSTART;VALUE=DATE:20260825
+        DTEND;VALUE=DATE:20260826
+        END:VEVENT
+        END:VCALENDAR
+      ICS
+      stub_request(:report, %r{/work/}).to_return(status: 207, body: calendar_data(holiday))
+
+      event = client.events(from: from, to: to).first
+
+      expect(event[:all_day]).to be(true)
+      expect(event[:starts_at]).to eq(Time.utc(2026, 8, 25, 4))
+    end
+
     # Not every CalDAV server implements <c:expand>.
     it 'falls back to unexpanded query and expands recurrences locally' do
       recurring = <<~ICS

@@ -125,6 +125,18 @@ RSpec.describe Integrations::GoogleCalendar do
       expect(event[:ends_at] - event[:starts_at]).to eq(1.day)
     end
 
+    # A date-only boundary is floating. Pinned to UTC it would start at 8pm the
+    # evening before for this Eastern user, which reads as the wrong day.
+    it 'starts an all-day event at midnight in the user zone' do
+      stub_events('primary', [{ id: 'h1', status: 'confirmed', summary: 'Holiday',
+                                start: { date: '2026-08-25' }, end: { date: '2026-08-26' } }])
+
+      event = client.events(from: from, to: to).first
+
+      expect(event[:starts_at]).to eq(Time.utc(2026, 8, 25, 4))
+      expect(event[:ends_at]).to eq(Time.utc(2026, 8, 26, 4))
+    end
+
     it 'drops cancelled events and ones the user declined' do
       stub_events('primary', [
                     { id: 'c1', status: 'cancelled', summary: 'Called Off',

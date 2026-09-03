@@ -29,6 +29,15 @@ RSpec.describe CalendarPanel do
     }.merge(overrides)
   end
 
+  # What the clients hand back for a VALUE=DATE event: midnight to midnight in
+  # the user's own zone, not in UTC.
+  def all_day_event(title, date, **overrides)
+    starts_at = user.zone.parse(date).utc
+
+    event(title, 0, **overrides).merge(uid: "#{title.parameterize}-#{date}", starts_at: starts_at,
+                                       ends_at: starts_at + 1.day, all_day: true)
+  end
+
   def stub_caldav(events)
     allow(Integrations::Caldav).to receive(:new).and_return(instance_double(Integrations::Caldav, events: events))
   end
@@ -79,7 +88,7 @@ RSpec.describe CalendarPanel do
   it 'sorts all-day events first, then by start time' do
     stub_caldav([
                   event('Late', 20),
-                  event('Holiday', 4, all_day: true),
+                  all_day_event('Holiday', '2026-08-25'),
                   event('Early', 15)
                 ])
 
@@ -87,12 +96,42 @@ RSpec.describe CalendarPanel do
   end
 
   it 'labels a timed event with its span and an all-day event plainly' do
-    stub_caldav([event('Design Review', 15), event('Holiday', 4, all_day: true)])
+    stub_caldav([event('Design Review', 15), all_day_event('Holiday', '2026-08-25')])
 
     labels = panel.presenter.fetch[:events].to_h { |e| [e[:title], e[:time_label]] }
 
     expect(labels['Design Review']).to eq('11:00–12:00 PM')
     expect(labels['Holiday']).to eq('All day')
+  end
+
+  # A CalDAV server matches a floating all-day date against the requested range
+  # in UTC (RFC 4791), so an Eastern user's Tuesday query also comes back with
+  # Wednesday's all-day events. They are never "finished", so nothing else drops
+  # them.
+  it 'drops an all-day event belonging to another day' do
+    stub_caldav([all_day_event('Yesterday Holiday', '2026-08-24'),
+                 all_day_event('Today Holiday', '2026-08-25'),
+                 all_day_event('Tomorrow Holiday', '2026-08-26')])
+
+    expect(panel.presenter.fetch[:events].pluck(:title)).to eq(['Today Holiday'])
+  end
+
+  it 'keeps a multi-day event that runs through today' do
+    conference = all_day_event('Conference', '2026-08-24')
+                 .merge(ends_at: user.zone.parse('2026-08-27').utc)
+
+    stub_caldav([conference])
+
+    expect(panel.presenter.fetch[:events].pluck(:title)).to eq(['Conference'])
+  end
+
+  # An event with no DTEND is a point in time rather than an interval, and one
+  # sitting exactly on midnight fails an overlap test.
+  it 'keeps an instantaneous event at the very start of the day' do
+    panel.update!(settings: { 'show_finished' => true })
+    stub_caldav([event('Rent Due', 4, duration: 0)])
+
+    expect(panel.presenter.fetch[:events].pluck(:title)).to eq(['Rent Due'])
   end
 
   it 'passes the video link through to the payload' do

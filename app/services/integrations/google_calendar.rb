@@ -103,7 +103,10 @@ module Integrations
       return nil if boundary.blank?
 
       if boundary['date'].present?
-        Date.parse(boundary['date']).in_time_zone('UTC')
+        # A date-only boundary is floating: Google is saying "the 26th", not an
+        # instant. Pinned to UTC it becomes 8pm on the 25th for an Eastern user,
+        # which lands tomorrow's all-day event on today's dashboard.
+        Date.parse(boundary['date']).in_time_zone(zone).utc
       else
         Time.parse(boundary['dateTime']).utc
       end

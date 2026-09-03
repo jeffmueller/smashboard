@@ -43,7 +43,8 @@ class CalendarPanel < ApplicationPanel
 
   def build_payload(events, window, partial:)
     now = Time.current
-    deduped = deduplicate(events).sort_by { |event| [event[:all_day] ? 0 : 1, event[:starts_at]] }
+    today = events.select { |event| within?(event, window) }
+    deduped = deduplicate(today).sort_by { |event| [event[:all_day] ? 0 : 1, event[:starts_at]] }
 
     finished, live = deduped.partition { |event| finished?(event, now) }
 
@@ -54,6 +55,22 @@ class CalendarPanel < ApplicationPanel
       partial: partial,
       window_date: window.first.in_time_zone(zone).to_date.iso8601
     }
+  end
+
+  # A calendar server's idea of the window is not the user's day. RFC 4791 has
+  # a CalDAV server match a floating all-day date against the range *in UTC*, so
+  # a query for an Eastern user's Tuesday also matches Wednesday's all-day
+  # events — and nothing downstream would drop them, because an all-day event is
+  # never "finished". Keep only what actually overlaps the day we asked for.
+  #
+  # Half-open at the start, so an event ending exactly at midnight belongs to the
+  # day it ended rather than the one beginning then. An event with no DTEND is a
+  # point in time (see #time_label), and an interval test would drop it.
+  def within?(event, window)
+    from, to = window
+    return event[:starts_at].between?(from, to) if event[:ends_at] <= event[:starts_at]
+
+    event[:starts_at] <= to && event[:ends_at] > from
   end
 
   # The same meeting can arrive from two connected accounts (a shared work
