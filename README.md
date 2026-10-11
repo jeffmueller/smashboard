@@ -150,8 +150,9 @@ bin/rails themes:import      # regenerate from the Omarchy themes on your machin
 That reads `colors.toml` from `/usr/share/omarchy/themes` and
 `~/.config/omarchy/themes` and writes two checked-in files: `config/themes.yml`
 (what the picker reads) and `app/assets/tailwind/themes.css` (a block of custom
-properties per theme). **The app never touches Omarchy at runtime** — a server
-that has never heard of it serves the same themes.
+properties per theme). **The server never touches Omarchy at runtime** — a
+server that has never heard of it serves the same themes. (A *browser* on an
+Omarchy desktop can follow the live theme; see below.)
 
 The importer does real work rather than copying values across:
 
@@ -174,6 +175,34 @@ attribute, which wins by specificity.
 
 Picking a theme at `/appearance` repaints the page immediately — the preview is
 the whole dashboard, not a swatch — and saving persists it per user.
+
+### Following your Omarchy desktop
+
+On an Omarchy machine, `/appearance` → **Follow my Omarchy theme on this device**
+takes the desktop's palette live — `omarchy theme set` recolours the board a
+moment later, cross-faded — and Omarchy's look with it: no rounded corners, the
+terminal's JetBrainsMono Nerd Font (already installed; nothing is downloaded),
+Hyprland's 10px gaps, borders instead of shadows, and the 2px accent border on
+the panel under the pointer, as on the focused window.
+
+A web page can't read `~/.local/state`, so this needs the small local bridge
+that Notey, Sprocket, Docket, Rocket and OHF@#K already share —
+`notey-omarchy-theme` on `127.0.0.1:47613`, installed from
+`~/Code/Sites/notey/integrations/omarchy` (`./install.sh`). It allows
+`https://smashboard.fsrvr.com` and `http://localhost:3000`. The first time,
+Chromium asks whether the site may access apps on this device; allow it.
+
+- **Per device, not per account.** It lives in that browser's localStorage, so a
+  phone or a machine without the bridge keeps the account's theme, and the
+  account's theme is untouched while following.
+- `app/javascript/omarchy_theme.js` maps the palette to the twelve tokens by the
+  importer's rules, so following a theme looks like picking it would. It is
+  painted inline on `<html>` (outranking every `[data-theme]` block) along
+  with `data-face="omarchy"`, which the face rules in `application.css` key on.
+- `layouts/_omarchy_boot` paints the cached tokens before first paint, on every
+  layout, so a reload never flashes the account's theme first.
+- Everything from the bridge is untrusted: only six-digit hex values under the
+  twelve known token names reach the page.
 
 ### Adding a theme by hand
 

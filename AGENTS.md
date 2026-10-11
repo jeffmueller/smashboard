@@ -112,6 +112,25 @@ that will bite you.
   broken in 25 of the 26 themes.
 - `config/themes.yml` and `app/assets/tailwind/themes.css` are **generated**;
   edit `lib/tasks/themes.rake` and rerun `bin/rails themes:import` instead.
+- **Following Omarchy paints tokens inline on `<html>`, and swaps `data-theme`.**
+  `omarchy_theme.js` sets `data-theme` to `Theme::SYSTEM_DARK`/`SYSTEM_LIGHT`
+  for the palette's mode, so any token the palette lacks comes from a theme of
+  the right lightness, and parks the account's own in `data-own-theme`. Anything
+  that reads or writes `data-theme` client-side must check for `data-own-theme`
+  first — `theme_preview_controller.js` does. Turbo never touches `<html>`'s
+  attributes on a visit, which is what lets one paint survive navigation.
+- `ok`/`warn`/`info` come from the bridge's `green`/`yellow`/`cyan`, which were
+  added to Notey's shared template for smashboard. An older bridge install lacks
+  them; the fallback above covers that rather than refusing the palette.
+- The Omarchy face is keyed on `[data-face="omarchy"]` and redraws **variables**
+  (`--radius-*`, `--tracking-*`, `--sb-gap`, `--sb-lift-*`). So depth is
+  `shadow-rest` (a panel) or `shadow-float` (a menu, a popover) rather than
+  `shadow-lg`, the board's gap is `gap-(--sb-gap)`, and the page gutter is
+  `px-(--sb-gutter)`. Plain `rounded` is a literal in Tailwind 4 and needs its
+  own override; an arbitrary `rounded-[…]` ignores the face entirely.
+- The clock's zone must be an **IANA** name (`zone.tzinfo.identifier`).
+  `Intl` throws on Rails' names (`Eastern Time (US & Canada)`) inside the
+  controller's `connect`, and the clock silently stops ticking.
 - Swatches on the appearance page use inline `style` on purpose — they show
   themes you are *not* currently wearing, so token classes would be wrong there.
 - **Slack reports failures as HTTP 200** with `{"ok": false, "error": …}`.

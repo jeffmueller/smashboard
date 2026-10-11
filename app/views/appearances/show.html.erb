@@ -1,6 +1,6 @@
 <% content_for :title, "Appearance" %>
 
-<div class="max-w-4xl">
+<div class="max-w-4xl" data-controller="omarchy-theme">
   <h1 class="mb-1 text-xl font-semibold tracking-tight">Appearance</h1>
   <p class="mb-5 text-sm text-ink-muted">
     <%# The themes ship with the app; they were generated from the Omarchy set,
@@ -9,8 +9,24 @@
     Pick how the dashboard looks. "Follow system" tracks your OS light and dark setting.
   </p>
 
+  <%# Per device, so not part of the form: it follows the desktop of the
+      machine this page is open on, and is kept in that browser's storage. %>
+  <label class="mb-6 flex cursor-pointer items-start gap-3 rounded-lg border border-line bg-surface p-4">
+    <input type="checkbox" class="mt-0.5 h-4 w-4 accent-accent"
+           data-omarchy-theme-target="toggle" data-action="omarchy-theme#toggle">
+    <div>
+      <div class="text-sm font-medium text-ink">Follow my Omarchy theme on this device</div>
+      <div class="text-xs text-ink-faint">
+        Takes the desktop's palette, live, and its look: square corners and the terminal's font.
+        Needs the notey-omarchy-theme bridge running on this machine.
+      </div>
+      <div class="mt-2 text-xs text-ink-muted" data-omarchy-theme-target="status" aria-live="polite"></div>
+    </div>
+  </label>
+
   <%= form_with model: current_user, url: appearance_path, method: :patch,
-        data: { controller: "theme-preview", turbo: false } do |f| %>
+        data: { controller: "theme-preview", turbo: false, omarchy_theme_target: "picker" },
+        class: "transition-opacity" do |f| %>
 
     <%# Following the OS needs no attribute on <html> at all — the stylesheet's
         prefers-color-scheme block handles it, so there's no flash on load. %>

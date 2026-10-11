@@ -15,7 +15,7 @@
   <%# Fixed rather than absolute: this can render inside a row's edit popover,
       and a clipped ancestor beats any z-index. %>
   <div data-emoji-picker-target="panel" hidden
-       class="fixed z-50 w-72 rounded-lg border border-line bg-raised p-2 shadow-lg shadow-canvas/40">
+       class="fixed z-50 w-72 rounded-lg border border-line bg-raised p-2 shadow-float">
     <input type="search" placeholder="Search emoji…" autocomplete="off"
            data-emoji-picker-target="search"
            data-action="input->emoji-picker#search"

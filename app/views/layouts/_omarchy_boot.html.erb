@@ -1,0 +1,33 @@
+<%# Following the Omarchy desktop theme (app/javascript/omarchy_theme.js) is a
+    per-device setting, so the server can't render it — this paints the tokens
+    cached from the bridge before first paint, rather than flashing the
+    account's own theme until the module loads. The same checks as the module:
+    only listed token names, only six-digit hex. Must come after the
+    theme-color meta tag, which it sets. %>
+<meta name="omarchy-theme" content="<%= { dark: Theme::SYSTEM_DARK, light: Theme::SYSTEM_LIGHT, tokens: Theme::TOKENS }.to_json %>">
+<script>
+  (function () {
+    try {
+      if (localStorage.getItem("appearance.followOmarchyTheme") !== "true") return
+      var cached = JSON.parse(localStorage.getItem("appearance.omarchyTokens") || "null")
+      var config = JSON.parse(document.querySelector('meta[name="omarchy-theme"]').content)
+      if (!cached || (cached.mode !== "dark" && cached.mode !== "light") || !cached.tokens) return
+
+      var hex = /^#[0-9a-f]{6}$/i
+      var root = document.documentElement
+      root.setAttribute("data-own-theme", root.getAttribute("data-theme") || "")
+      root.setAttribute("data-theme", cached.mode === "light" ? config.light : config.dark)
+      config.tokens.forEach(function (token) {
+        if (hex.test(cached.tokens[token] || "")) root.style.setProperty("--sb-" + token, cached.tokens[token])
+      })
+      root.style.colorScheme = cached.mode
+      root.setAttribute("data-face", "omarchy")
+      root.setAttribute("data-omarchy-theme", String(cached.name || "omarchy").slice(0, 64))
+
+      var meta = document.querySelector('meta[name="theme-color"]')
+      if (meta && hex.test(cached.tokens.canvas || "")) meta.setAttribute("content", cached.tokens.canvas)
+    } catch (e) {
+      // Blocked site data or a corrupt cache: the module sorts it out on load.
+    }
+  })()
+</script>

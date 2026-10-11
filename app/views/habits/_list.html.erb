@@ -30,7 +30,7 @@
             <details class="relative">
               <summary class="cursor-pointer list-none text-xs text-ink-muted hover:text-ink">Edit</summary>
               <%= form_with model: habit, url: habit_path(habit), method: :patch,
-                    class: "absolute right-0 z-10 mt-2 w-72 space-y-2 rounded-lg border border-line bg-surface p-3 shadow-lg" do |f| %>
+                    class: "absolute right-0 z-10 mt-2 w-72 space-y-2 rounded-lg border border-line bg-surface p-3 shadow-float" do |f| %>
                 <%= f.text_field :name, class: "w-full rounded-md border border-line bg-canvas/60 px-2.5 py-1.5 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
                 <%= render "habits/emoji_field", f: f %>
                 <%= f.submit "Save", class: "w-full rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-ink hover:bg-accent" %>

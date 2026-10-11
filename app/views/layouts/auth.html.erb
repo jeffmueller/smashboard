@@ -4,6 +4,7 @@
     <title><%= content_for(:title) || "smashboard" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     <meta name="theme-color" content="#0e0e14">
+    <%= render "layouts/omarchy_boot" %>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <link rel="icon" href="/icon.png" type="image/png">
@@ -20,7 +21,7 @@
         <span class="text-lg font-semibold tracking-tight">smashboard</span>
       </div>
 
-      <div class="rounded-xl border border-line bg-surface p-6 shadow-lg shadow-canvas/40">
+      <div class="rounded-xl border border-line bg-surface p-6 shadow-float">
         <% if content_for?(:heading) %>
           <h1 class="mb-1 text-lg font-semibold tracking-tight"><%= yield :heading %></h1>
           <p class="mb-5 text-sm text-ink-muted"><%= yield :subheading %></p>

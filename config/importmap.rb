@@ -4,6 +4,7 @@
 
 pin 'application'
 pin 'push'
+pin 'omarchy_theme'
 # Pulled in on demand by the emoji picker — 66KB that most pages never need.
 pin 'emoji_data'
 pin '@hotwired/turbo-rails', to: 'turbo.min.js'

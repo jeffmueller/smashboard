@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="<%= user_signed_in? ? current_user.resolved_theme.token("canvas") : "#0e0e14" %>">
+    <%= render "layouts/omarchy_boot" %>
     <%= csrf_meta_tags %>
     <% if ENV["VAPID_PUBLIC_KEY"].present? %>
       <meta name="vapid-public-key" content="<%= ENV["VAPID_PUBLIC_KEY"] %>">
@@ -32,7 +33,7 @@
         <%# Three columns rather than justify-between: the clock has to be centred
             on the bar itself, and with flex it would only look centred while the
             brand and the nav happened to be the same width. %>
-        <div class="mx-auto grid max-w-[1800px] grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 py-3">
+        <div class="mx-auto grid max-w-[1800px] grid-cols-[1fr_auto_1fr] items-center gap-4 px-(--sb-gutter) py-3">
           <%= link_to root_path, class: "flex items-center gap-2 justify-self-start font-semibold tracking-tight" do %>
             <span class="inline-block h-2.5 w-2.5 rounded-full bg-ok shadow-[0_0_12px] shadow-ok/60"></span>
             <span class="text-lg">smashboard</span>
@@ -49,7 +50,7 @@
 
       <%= render "shared/flash" %>
 
-      <main class="mx-auto max-w-[1800px] px-4 py-6">
+      <main class="mx-auto max-w-[1800px] px-(--sb-gutter) py-6">
         <%= yield %>
       </main>
     </div>

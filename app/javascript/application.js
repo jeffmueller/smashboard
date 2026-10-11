@@ -2,3 +2,7 @@
 import "@hotwired/turbo-rails"
 import "controllers"
 import "push"
+import { start as startOmarchyTheme } from "omarchy_theme"
+
+// Per device; the cached palette is already painted by layouts/_omarchy_boot.
+startOmarchyTheme()

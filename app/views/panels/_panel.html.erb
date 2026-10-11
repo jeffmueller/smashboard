@@ -1,9 +1,10 @@
 <%# Dispatcher: every panel gets the same chrome, and the body is chosen by kind. %>
 <section
   id="<%= dom_id(panel) %>"
+  data-panel
   data-reorder-target="item"
   data-reorder-id="<%= panel.id %>"
-  class="group relative flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg shadow-canvas/40 <%= panel_span_classes(panel) %>">
+  class="group relative flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-rest <%= panel_span_classes(panel) %>">
 
   <header
     draggable="true"

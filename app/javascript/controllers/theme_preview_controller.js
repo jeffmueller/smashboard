@@ -7,7 +7,14 @@ export default class extends Controller {
   static targets = ["status"]
 
   connect() {
-    this.original = document.documentElement.dataset.theme || ""
+    this.original = this.ownTheme ?? (document.documentElement.dataset.theme || "")
+  }
+
+  // While following Omarchy (omarchy_theme.js), data-theme is the palette's
+  // fallback and the account's own theme is parked in data-own-theme — so a
+  // preview goes there, and shows the moment following is turned off.
+  get ownTheme() {
+    return document.documentElement.dataset.ownTheme
   }
 
   preview(event) {
@@ -21,7 +28,9 @@ export default class extends Controller {
   }
 
   apply(slug) {
-    if (slug) {
+    if (this.ownTheme !== undefined) {
+      document.documentElement.dataset.ownTheme = slug
+    } else if (slug) {
       document.documentElement.dataset.theme = slug
     } else {
       // Removing the attribute hands control back to prefers-color-scheme.

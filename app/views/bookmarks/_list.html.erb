@@ -29,7 +29,7 @@
             <details class="relative">
               <summary class="cursor-pointer list-none text-xs text-ink-muted hover:text-ink">Edit</summary>
               <%= form_with model: bookmark, url: bookmark_path(bookmark), method: :patch,
-                    class: "absolute right-0 z-10 mt-2 w-80 space-y-2 rounded-lg border border-line bg-surface p-3 shadow-lg" do |f| %>
+                    class: "absolute right-0 z-10 mt-2 w-80 space-y-2 rounded-lg border border-line bg-surface p-3 shadow-float" do |f| %>
                 <%= f.text_field :title, class: "w-full rounded-md border border-line bg-canvas/60 px-2.5 py-1.5 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
                 <%= f.text_field :url, class: "w-full rounded-md border border-line bg-canvas/60 px-2.5 py-1.5 text-sm text-ink focus:border-accent/60 focus:outline-none" %>
                 <%= render "bookmarks/emoji_field", f: f %>

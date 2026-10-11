@@ -19,7 +19,7 @@
 
   <div id="nav-menu" hidden
        data-nav-menu-target="menu"
-       class="absolute right-0 z-50 mt-2 w-56 rounded-lg border border-line bg-raised p-1.5 shadow-lg shadow-canvas/40">
+       class="absolute right-0 z-50 mt-2 w-56 rounded-lg border border-line bg-raised p-1.5 shadow-float">
     <% [["Countdowns", countdowns_path], ["Todos", todos_path], ["Habits", habits_path],
         ["Bookmarks", bookmarks_path]].each do |label, path| %>
       <%= link_to label, path, class: "#{item} #{current if current_page?(path)}",
