@@ -4,7 +4,7 @@
     browser by clock_controller so the server never re-renders once a second. %>
 <% now = Time.current.in_time_zone(current_user.zone) %>
 <div data-controller="clock"
-     data-clock-time-zone-value="<%= current_user.zone.name %>"
+     data-clock-time-zone-value="<%= current_user.zone.tzinfo.identifier %>"
      class="flex items-baseline justify-self-center gap-3">
   <span data-clock-target="time" class="font-mono text-base font-semibold tabular-nums tracking-tight text-ink">
     <%= now.strftime("%-I:%M %p") %>

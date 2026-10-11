@@ -10,7 +10,9 @@ RSpec.describe 'The top bar clock' do
     get root_path
 
     expect(response.body).to include('data-controller="clock"')
-    expect(response.body).to include('data-clock-time-zone-value="Pacific Time (US &amp; Canada)"')
+    # Intl takes IANA names only. Rails' own, "Pacific Time (US & Canada)",
+    # throws in the controller's connect and the clock never ticks.
+    expect(response.body).to include('data-clock-time-zone-value="America/Los_Angeles"')
     expect(response.body).to include('justify-self-center')
   end
 
